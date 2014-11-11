@@ -4,7 +4,7 @@
 We just want something that is easy to configure and fast without having to implement a caching strategy.  It works for us, and it might work for you, too.
 
 ### Requirements
-This is the first pass.  This is being open-sourced for a specific application, so there are currently certain dependencies that I would like to remove, in favor of a more pluggable architecture.
+This is being open-sourced from a specific application, so there are currently certain dependencies and limitations that I would like to remove, in favor of a more pluggable architecture.
 - mezzanine == 3.1.9
 - jsonfield == 1.0.0
 
