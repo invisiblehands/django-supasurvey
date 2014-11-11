@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+<ul>
+    {% for survey in survey_list %}
+    <li><a href="{{survey.get_absolute_url}}">{{survey.title}}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

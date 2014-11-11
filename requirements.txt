@@ -1,0 +1,4 @@
+Mezzanine==3.1.9
+floppyforms
+Django>=1.4.3
+jsonfield

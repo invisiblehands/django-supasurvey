@@ -1,0 +1,20 @@
+<ul class="chooseone-radios open {% if stacked %}stacked{% endif %}">
+{% for group_name, choices in optgroups %}{% for choice in choices %}
+  <li class="{% if forloop.last %}other{% endif %} group">
+    <label for="{{ attrs.id }}_{{ forloop.counter }}" class="{% if forloop.last %}group other{% endif %}">
+      <input type="radio" id="{{ attrs.id }}_{{ forloop.counter }}" value="{{ choice.0 }}" name="{{ name }}"{% if required %} required{% endif %}{% if choice.0 in value %} checked{% endif %}> 
+      {% if forloop.last %}
+      <input type="text" class="other" 
+          id="{{ attrs.id }}_{{ forloop.counter }}_other" 
+          name="{{ name }}_other" 
+          placeholder="{{ other }}"> 
+      {% else %}
+      <span class="choice">{{ choice.1 }}</span>
+      {% endif %}
+    </label>
+    {% if forloop.last %}
+
+    {% endif %}
+  </li>
+{% endfor %}{% endfor %}
+</ul>

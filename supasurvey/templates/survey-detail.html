@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<header class="survey-title">
+    <h2>{{survey.title}}</h2>
+</header>
+
+<form action="." method="post" class="survey">
+
+    <fieldset class="group">
+        {% nevercache %}
+        {% csrf_token %}
+        {% endnevercache %}
+
+        <input type="hidden" value="{{page}}">
+
+        {% if form.errors %}
+        <a href="#errorlist" class="error"><strong>There are errors.</strong></a>
+        {% endif %} 
+
+        {% for field in form %}
+        {% if forloop.first %}
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+        {% endif %}
+
+        <div class="form-group {% if forloop.counter|divisibleby:2 %}even{% else %}odd{% endif %} {% if field.errors %} errors {% endif %}">
+            <div class="number">{{forloop.counter}}
+            </div>
+            
+            <div class="label">
+                {% if field.errors %}
+                <div class="errors">{{ field.errors }}
+                </div>
+                {% endif %}
+
+                <label>{{ field.label }}
+                </label>
+            </div>
+            
+            <div class="field">{{ field }}</div>
+        </div>
+        {% endfor %}
+    </fieldset>
+
+    <div class="actions">
+        <input class="submit" type="submit" value="{{submit}}">  
+    </div>
+</form>
+{% endblock %}

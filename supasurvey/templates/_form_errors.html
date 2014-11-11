@@ -1,0 +1,16 @@
+<div class="form-errors">
+  <p><strong>There were errors during validation. Please correct the following:</strong></p>
+  <ul class="field-errors">
+    {% if error_form.non_field_errors %}
+    {% for field in error_form.non_field_errors %}
+    <li>{{field}}</li>
+    {% endfor %}
+    {% endif %}
+
+    {% for field in error_form %}
+    {% if field.errors %}
+    <li>{{ field.label }}: {{ field.errors|striptags }}</li>
+    {% endif %}
+    {% endfor %}
+  </ul>
+</div>

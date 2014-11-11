@@ -1,0 +1,11 @@
+<ul class="chooseone-radios stacked">
+  {% for group_name, choices in optgroups %}
+  {% for choice in choices %}
+  <li class="group">
+    <label for="{{ attrs.id }}_{{ forloop.counter }}">
+      <input {% if choice.0 in value %}checked="checked" {% endif %}type="checkbox" id="{{ attrs.id }}_{{ forloop.counter }}" name="{{ name }}" value="{{ choice.0 }}">
+      <span class="choice">{{ choice.1 }}</span>
+    </label>
+  </li>
+{% endfor %}{% endfor %}
+</ul>
