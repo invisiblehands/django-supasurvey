@@ -5,7 +5,8 @@ We just want something that is easy to configure and fast without having to impl
 
 ### Requirements
 This is being open-sourced from a specific application, so there are currently certain dependencies and limitations that I would like to remove, in favor of a more pluggable architecture.
-- mezzanine == 3.1.9
+- django >= 1.7.1
+- django-floppyforms == 1.2.0
 - jsonfield == 1.0.0
 
 ### Install
