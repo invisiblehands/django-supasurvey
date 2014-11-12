@@ -65,7 +65,7 @@ class Survey(models.Model):
 
 
 
-class SurveyNotification(models.Model):
+class SurveyNotifier(models.Model):
     """ This person is notified when a new survey response is submitted. """
     name = models.CharField("Name", max_length=499)
     email = models.EmailField("Email")
