@@ -6,6 +6,7 @@ from django.core.serializers.base import DeserializationError
 from django.forms.util import ValidationError
 from django.db import models
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 
 try:
     import json
@@ -17,10 +18,108 @@ from .fields import EmailField
 
 
 class EmailFieldTest(TestCase):
-    def test_json_field_create(self):
-        """Test saving a JSON object in our JSONField"""
+    def test_normal_emailfield_no_data(self):
+        """Test a normal emailfield behaviour"""
         
-        REQUIRED = True
+        data = {}
+        files = []
 
-        email = EmailField(label="What is your email address?", required=REQUIRED)
-        self.assertEqual(True, True)
+        email = EmailField(label="What is your email address?", required=False)
+        value = email.widget.value_from_datadict(data, files, 'email')
+        self.assertEqual(value, None)
+
+        value = email.to_python(value)
+        self.assertEqual(value, '')
+
+        value = email.clean(value)
+        self.assertEqual(value, '')
+
+
+    def test_normal_emailfield_blank(self):
+        """Test a normal emailfield behaviour with blank data"""
+        
+        
+        data = {
+            'email': ''
+        }
+        files = []
+
+        email = EmailField(label="What is your email address?", required=False)
+        value = email.widget.value_from_datadict(data, files, 'email')
+        self.assertEqual(value, '')
+
+        value = email.to_python(value)
+        self.assertEqual(value, '')
+
+        value = email.clean(value)
+        self.assertEqual(value, '')
+
+
+    def test_normal_emailfield_bad_data(self):
+        """Test a normal emailfield behaviour with bad data, should raise validationError"""
+        
+        stub = 'cody'
+        data = {
+            'email': stub
+        }
+        files = []
+
+        email = EmailField(label="What is your email address?", required=False)
+        value = email.widget.value_from_datadict(data, files, 'email')
+        
+        self.assertEqual(value, stub)
+        self.assertRaises(ValidationError, email.clean, value)
+
+
+    def test_normal_emailfield_good_data(self):
+        """Test a normal emailfield behaviour with good data"""
+        
+        stub = 'cody@gmail.com'
+        data = {
+            'email': stub
+        }
+        files = []
+
+        email = EmailField(label="What is your email address?", required=False)
+        value = email.widget.value_from_datadict(data, files, 'email')
+        self.assertEqual(value, stub)
+        value = email.clean(value)
+        self.assertEqual(value, stub)
+
+
+    def test_normal_emailfield_with_score_bad(self):
+        """Test a normal emailfield behaviour with score and bad data"""
+        
+        stub = 'cody'
+        data = {
+            'email': stub
+        }
+        files = []
+
+        email = EmailField(
+            label="What is your email address?", 
+            required=False,
+            max_score=5)
+
+        value = email.widget.value_from_datadict(data, files, 'email')
+        score = email.get_score(value)
+        self.assertEqual(score, 0)
+
+
+    def test_normal_emailfield_with_score_good(self):
+        """Test a normal emailfield behaviour with good score and good data"""
+        
+        stub = 'cody@gmail.com'
+        data = {
+            'email': stub
+        }
+        files = []
+
+        email = EmailField(
+            label="What is your email address?", 
+            required=False,
+            max_score=5)
+
+        value = email.widget.value_from_datadict(data, files, 'email')
+        score = email.get_score(value)
+        self.assertEqual(score, 5)

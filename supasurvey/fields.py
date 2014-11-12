@@ -7,7 +7,34 @@ from .widgets import ChooseOneForEach, ChooseOneForSubject
 
 
 
-class EmailField(forms.EmailField):
+class ScoreFormFieldBase(object):
+    def __init__(self, *args, **kwargs):
+        self.min_score = kwargs.pop('min_score', 0)
+        self.max_score = kwargs.pop('max_score', 0)
+        super(ScoreFormFieldBase, self).__init__(*args, **kwargs)
+
+
+    def get_score(self, v):
+        try:
+            self.clean(v)
+            self.score = self.max_score
+        except ValidationError, e:
+            self.score = self.min_score
+        return self.score
+
+
+    def clean(self, value):
+        try:
+            cleaned = super(ScoreFormFieldBase, self).clean(value);
+            self.score = self.max_score
+        except ValidationError, e:
+            self.score = self.min_score
+            raise
+        return cleaned
+
+
+
+class EmailField(ScoreFormFieldBase, forms.EmailField):
     def __init__(self, *args, **kwargs):
         super(EmailField, self).__init__(*args, **kwargs)
 
@@ -19,7 +46,7 @@ class EmailField(forms.EmailField):
 
 
 
-class ChooseYesNoField(forms.ChoiceField):
+class ChooseYesNoField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = (("Y", "Yes"), ("N", "No"))
@@ -44,7 +71,7 @@ class ChooseYesNoField(forms.ChoiceField):
         return v
 
 
-class ChooseOneField(forms.ChoiceField):
+class ChooseOneField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, label, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
         stacked = kwargs.pop("stacked", None)
@@ -72,7 +99,7 @@ class ChooseOneField(forms.ChoiceField):
         return v
 
 
-class ChooseOneOpenField(forms.ChoiceField):
+class ChooseOneOpenField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, label, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
 
@@ -111,7 +138,7 @@ class ChooseOneOpenField(forms.ChoiceField):
         return False
 
 
-class ChooseMultipleField(forms.MultipleChoiceField):
+class ChooseMultipleField(ScoreFormFieldBase, forms.MultipleChoiceField):
     def __init__(self, label, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = [(x, x) for x in choices]
@@ -136,7 +163,7 @@ class ChooseMultipleField(forms.MultipleChoiceField):
         return html
 
 
-class OpenField(forms.CharField):
+class OpenField(ScoreFormFieldBase, forms.CharField):
     def __init__(self, label, *args, **kwargs):
         required = kwargs.pop('required', False)
         widget = forms.Textarea
@@ -157,7 +184,7 @@ class OpenField(forms.CharField):
         return v
 
 
-class ChooseOneForEachField(forms.MultiValueField):
+class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
     def __init__(self, label, choices=[], subjects=[], stacked=False, *args, **kwargs):
         required = kwargs.pop('required', False)
         error_messages = {

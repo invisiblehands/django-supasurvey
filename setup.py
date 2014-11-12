@@ -3,6 +3,7 @@
 from distutils.core import setup
 from distutils.core import Command
 
+
 class TestCommand(Command):
     user_options = []
 
@@ -23,6 +24,7 @@ class TestCommand(Command):
         if django.VERSION[:2] >= (1, 7):
             django.setup()
         call_command('test', 'supasurvey')
+
 
 setup(name='supasurvey',
     version='0.0.1',
