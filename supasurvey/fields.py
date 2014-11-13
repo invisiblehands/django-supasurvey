@@ -11,33 +11,39 @@ class ScoreFormFieldBase(object):
     def __init__(self, *args, **kwargs):
         self.min_score = kwargs.pop('min_score', 0)
         self.max_score = kwargs.pop('max_score', 0)
+        self.correct = kwargs.pop('correct', None)
+        self.scores = kwargs.pop('scores', [])
+        self._score = self.min_score
+
         super(ScoreFormFieldBase, self).__init__(*args, **kwargs)
 
 
-    def get_score(self, v):
+    def score(self, v):
         try:
             self.clean(v)
-            self.score = self.max_score
         except ValidationError, e:
-            self.score = self.min_score
-        return self.score
-
+            pass
+        return self._score
+    
 
     def clean(self, value):
+        self._score = self.min_score
+
         try:
             cleaned = super(ScoreFormFieldBase, self).clean(value);
-            self.score = self.max_score
+            self._score = self.max_score
+
+            if self.correct:
+                self._score = self.max_score if cleaned == self.correct else self.min_score
+            else:
+                self._score = self.max_score
         except ValidationError, e:
-            self.score = self.min_score
             raise
         return cleaned
 
 
 
-class EmailField(ScoreFormFieldBase, forms.EmailField):
-    def __init__(self, *args, **kwargs):
-        super(EmailField, self).__init__(*args, **kwargs)
-
+class OutputFormatFieldBase(object):
     def get_csv_value(self, v):
         return v
         
@@ -46,37 +52,82 @@ class EmailField(ScoreFormFieldBase, forms.EmailField):
 
 
 
-class ChooseYesNoField(ScoreFormFieldBase, forms.ChoiceField):
+class CharField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
-        choices = (("Y", "Yes"), ("N", "No"))
+        min_length = kwargs.pop('min_length', None)
+        max_length = kwargs.pop('max_length', None)
+        widget = forms.TextInput
+
+        kwargs.update({
+            'widget': widget,
+            'required': required,
+            'max_length': max_length,
+            'min_length': min_length
+        })
+
+        super(CharField, self).__init__(**kwargs)
+
+
+
+class TextField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+        min_length = kwargs.pop('min_length', None)
+        max_length = kwargs.pop('max_length', None)
+        widget = forms.Textarea
+
+        kwargs.update({
+            'widget': widget,
+            'required': required,
+            'max_length': max_length,
+            'min_length': min_length,
+        })
+
+        super(TextField, self).__init__(**kwargs)
+
+
+
+class EmailField(OutputFormatFieldBase, ScoreFormFieldBase, forms.EmailField):
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+
+        kwargs.update({
+            'required': required
+        })
+        
+        super(EmailField, self).__init__(*args, **kwargs)
+
+
+
+class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+        correct = kwargs.pop('correct', 'Yes')
+        choices = ['Yes', 'No']
+        choices = tuple([(x, x) for x in choices])
 
         widget = RadioSelectOptions(
             stacked=False,
             required=required)
 
         kwargs.update({
-            "label": args[0],
-            "choices": choices,
-            "widget": widget,
-            "required": required
+            'choices': choices,
+            'widget': widget,
+            'required': required,
+            'correct': correct
         })
 
         super(ChooseYesNoField, self).__init__(**kwargs)
 
-    def get_csv_value(self, v):
-        return v
 
-    def get_formatted_value(self, v):
-        return v
-
-
-class ChooseOneField(ScoreFormFieldBase, forms.ChoiceField):
-    def __init__(self, label, choices, *args, **kwargs):
+class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+    def __init__(self, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
-        stacked = kwargs.pop("stacked", None)
+        stacked = kwargs.pop('stacked', None)
+        choices = kwargs.pop('choices', [])
         choices = tuple([(x, x) for x in choices])
-        widget = kwargs.pop("widget", None)
+        widget = kwargs.pop('widget', None)
 
         if widget == None:
             widget = RadioSelectOptions(
@@ -84,23 +135,17 @@ class ChooseOneField(ScoreFormFieldBase, forms.ChoiceField):
                 required=required)
         
         kwargs.update({
-            "label": label,
-            "widget": widget,
-            "choices": choices,
-            "required": required
+            'widget': widget,
+            'choices': choices,
+            'required': required
         })
         
         super(ChooseOneField, self).__init__(**kwargs)
 
-    def get_csv_value(self, v):
-        return v
-
-    def get_formatted_value(self, v):
-        return v
 
 
-class ChooseOneOpenField(ScoreFormFieldBase, forms.ChoiceField):
-    def __init__(self, label, choices, *args, **kwargs):
+class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+    def __init__(self, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
 
         choices = [(x, x) for x in choices]
@@ -112,23 +157,15 @@ class ChooseOneOpenField(ScoreFormFieldBase, forms.ChoiceField):
             required=required)
 
         kwargs.update({
-            "label": label,
-            "choices": choices,
-            "widget": widget,
-            "required": required
+            'choices': choices,
+            'widget': widget,
+            'required': required
         })
 
         super(ChooseOneOpenField, self).__init__(**kwargs)
 
-    def get_csv_value(self, v):
-        return v
-
-    def get_formatted_value(self, v):
-        return v
-
-
     def clean(self, value, *args, **kwargs):
-        if value == "Other":
+        if value == 'Other':
             raise ValidationError('Please specify.', code='invalid')
         return super(ChooseOneOpenField, self).clean(value, *args, **kwargs)
 
@@ -138,24 +175,22 @@ class ChooseOneOpenField(ScoreFormFieldBase, forms.ChoiceField):
         return False
 
 
-class ChooseMultipleField(ScoreFormFieldBase, forms.MultipleChoiceField):
-    def __init__(self, label, choices, *args, **kwargs):
+
+class ChooseMultipleField(OutputFormatFieldBase, ScoreFormFieldBase, forms.MultipleChoiceField):
+    def __init__(self, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = [(x, x) for x in choices]
         widget = forms.CheckboxSelectMultiple
         kwargs.update({
-            "label": label,
-            "widget": widget,
-            "choices": tuple(choices),
-            "required": required
+            'widget': widget,
+            'choices': tuple(choices),
+            'required': required
         })
         
         super(ChooseMultipleField, self).__init__(**kwargs)
 
-    def get_csv_value(self, v):
-        return v
-
     def get_formatted_value(self, v):
+        """ Override this function to display an html list. """
         html = '<ul style="padding-left: 1em;">'
         for x in v:
             html += '<li style="list-style-type: disc; list-style-position:outside; width: 160px;">%s</li>' % x
@@ -163,29 +198,9 @@ class ChooseMultipleField(ScoreFormFieldBase, forms.MultipleChoiceField):
         return html
 
 
-class OpenField(ScoreFormFieldBase, forms.CharField):
-    def __init__(self, label, *args, **kwargs):
-        required = kwargs.pop('required', False)
-        widget = forms.Textarea
-
-        kwargs.update({
-            "label": label,
-            "widget": widget,
-            "required": required
-        })
-
-        super(OpenField, self).__init__(**kwargs)
-
-
-    def get_csv_value(self, v):
-        return v
-
-    def get_formatted_value(self, v):
-        return v
-
 
 class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
-    def __init__(self, label, choices=[], subjects=[], stacked=False, *args, **kwargs):
+    def __init__(self, choices=[], subjects=[], stacked=False, *args, **kwargs):
         required = kwargs.pop('required', False)
         error_messages = {
             'required': 'These fields are required.'
@@ -196,17 +211,18 @@ class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
         self.num_fields = len(fields)
 
         kwargs = {
-            "label": label,
-            "fields": fields, 
-            "widget": widget,
-            "required": required,
-            "error_messages": error_messages, 
+            'fields': fields, 
+            'widget': widget,
+            'required': required,
+            'error_messages': error_messages, 
         }
 
         super(ChooseOneForEachField, self).__init__(*args, **kwargs)
 
-
     def get_csv_value(self, v):
+        """ the subject/choice is represented as a key-value pair and is rendered in the
+        csv output file as a string in the format of "[subject:choice],[subject:choice]..."
+        """
         subjects = [f.widget.subject for f in self.fields]
         values = v.split('|')
         zipped = zip(subjects, values)
@@ -216,8 +232,10 @@ class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
 
         return txt
 
-
     def get_formatted_value(self, v):
+        """ the subject/choice is represented as a key-value pair and is rendered in the
+        admin as a html list.
+        """
         subjects = [f.widget.subject for f in self.fields]
         values = v.split('|')
         zipped = zip(subjects, values)

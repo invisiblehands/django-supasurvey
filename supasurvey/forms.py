@@ -16,48 +16,58 @@ class SurveyFormSimple(SupaSurveyForm):
     """ This is an example of a static form with no scoring """
     name = TextField(label="What is your name?")
     
-    email = EmailField(label="What is your email address?",
+    email = EmailField(
+        label="What is your email address?",
         required=REQUIRED)
 
-    yes_no = ChooseYesNoField("Are you a good dog?", required=REQUIRED)
+    yes_no = ChooseYesNoField(
+        label="Are you a good dog?", 
+        required=REQUIRED)
 
-    choose_one = ChooseOneField("If yes, how long have you been a good dog?", [
-        "1-2 years",
-        "3-5 years",
-        "5-10 years"
-        ],
+    choose_one = ChooseOneField(
+        label="If yes, how long have you been a good dog?", 
+        choices = [
+            "1-2 years",
+            "3-5 years",
+            "5-10 years"],
         stacked=True, 
         dependency="good_dog==YES",
         required=REQUIRED)
 
 
-    choose_one_open = ChooseOneOpenField("How did you first hear about being a good dog?", [
-        "A friend/family member told me about it",
-        "I heard about it online",
-        "I saw it at a bookstore",
-        "I found it at a library",
-        "I received an offer in the mail",
-        "I have a copy in my office"],
+    choose_one_open = ChooseOneOpenField(
+        label="How did you first hear about being a good dog?", 
+        choices=[
+            "A friend/family member told me about it",
+            "I heard about it online",
+            "I saw it at a bookstore",
+            "I found it at a library",
+            "I received an offer in the mail",
+            "I have a copy in my office"],
         required=REQUIRED)
 
 
-    write_anything = OpenField("How would you describe being a good dog to a friend?", 
+    write_anything = OpenField(
+        label="How would you describe being a good dog to a friend?", 
         required=REQUIRED
         max_words=None,
         min_words=None)
 
 
-    choose_multiple = ChooseMultipleField("What are you favorite parts of being a good dog??", [
-        "Treats",
-        "Pats on the head",
-        "Belly rubs",
-        "Toys",
-        "Going to the beach",
-        "Playing catch"
+    choose_multiple = ChooseMultipleField(
+        label="What are you favorite parts of being a good dog??", 
+        choices = [
+            "Treats",
+            "Pats on the head",
+            "Belly rubs",
+            "Toys",
+            "Going to the beach",
+            "Playing catch"
         ])
 
 
-    choose_one_for_each = ChooseOneForEachField("For each activity, should there be more or less?",
+    choose_one_for_each = ChooseOneForEachField(
+        label="For each activity, should there be more or less?",
         choices=[
             "More", 
             "Same", 
