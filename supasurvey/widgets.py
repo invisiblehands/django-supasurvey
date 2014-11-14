@@ -6,17 +6,14 @@ class RadioSelectOptions(forms.RadioSelect):
 
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
-        stacked = kwargs.pop('stacked', False)
 
         self.is_required = required
-        self.is_stacked = stacked
 
         super(RadioSelectOptions, self).__init__(*args, **kwargs)
 
     def get_context(self, name, value, attrs):
         ctx = super(RadioSelectOptions, self).get_context(name, value, attrs)
 
-        ctx["stacked"] = self.is_stacked
         ctx["required"] = self.is_required
         return ctx
 
@@ -26,17 +23,14 @@ class RadioSelectOpen(forms.RadioSelect):
 
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
-        stacked = kwargs.pop('stacked', False)
 
         self.is_required = required
-        self.is_stacked = stacked
 
         super(RadioSelectOpen, self).__init__(*args, **kwargs)
 
     def get_context(self, name, value, attrs):
         ctx = super(RadioSelectOpen, self).get_context(name, value, attrs)
         ctx["other"] = "Other"
-        ctx["stacked"] = self.is_stacked
         ctx["required"] = self.is_required
         return ctx
 
@@ -56,17 +50,14 @@ class ChooseOneForSubject(forms.RadioSelect):
         self.subject = subject
 
         required = kwargs.pop('required', False)
-        stacked = kwargs.pop('stacked', False)
 
         self.is_required = required
-        self.is_stacked = stacked
 
         super(ChooseOneForSubject, self).__init__(*args, **kwargs)
 
 
     def get_context(self, name, value, attrs):
         ctx = super(ChooseOneForSubject, self).get_context(name, value, attrs)
-        ctx["stacked"] = self.is_stacked
         ctx["required"] = True # is_required is getting overwritten somewhere.
         ctx["subject"] = self.subject
         return ctx

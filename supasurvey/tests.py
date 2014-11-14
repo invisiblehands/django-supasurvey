@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import *
 from collections import OrderedDict
 
 from django.core.serializers import deserialize, serialize
@@ -13,24 +13,27 @@ try:
 except ImportError:
     from django.utils import simplejson as json
 
-from .fields import EmailField, ChooseYesNoField
+from .fields import EmailField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 
 
-class EmailFieldTest(TestCase):
+class ScoreEmailFieldTest(TestCase):
     def test_normal_emailfield_no_data(self):
         """Test a normal emailfield behaviour"""
         
         data = {}
         files = []
 
-        email = EmailField(label="What is your email address?", required=False)
+        email = EmailField(label='What is your email address?', required=False)
+        # find nothing called 'email' in datadict
         value = email.widget.value_from_datadict(data, files, 'email')
         self.assertEqual(value, None)
 
+        # cast to blank
         value = email.to_python(value)
         self.assertEqual(value, '')
 
+        # still blank
         value = email.clean(value)
         self.assertEqual(value, '')
 
@@ -44,7 +47,7 @@ class EmailFieldTest(TestCase):
         }
         files = []
 
-        email = EmailField(label="What is your email address?", required=False)
+        email = EmailField(label='What is your email address?', required=False)
         value = email.widget.value_from_datadict(data, files, 'email')
         self.assertEqual(value, '')
 
@@ -58,16 +61,15 @@ class EmailFieldTest(TestCase):
     def test_normal_emailfield_bad_data(self):
         """Test a normal emailfield behaviour with bad data, should raise validationError"""
         
-        stub = 'cody'
         data = {
-            'email': stub
+            'email': 'cody'
         }
         files = []
 
-        email = EmailField(label="What is your email address?", required=False)
+        email = EmailField(label='What is your email address?', required=False)
         value = email.widget.value_from_datadict(data, files, 'email')
         
-        self.assertEqual(value, stub)
+        self.assertEqual(value, data['email'])
         self.assertRaises(ValidationError, email.clean, value)
 
 
@@ -80,7 +82,7 @@ class EmailFieldTest(TestCase):
         }
         files = []
 
-        email = EmailField(label="What is your email address?", required=False)
+        email = EmailField(label='What is your email address?', required=False)
         value = email.widget.value_from_datadict(data, files, 'email')
         self.assertEqual(value, stub)
         value = email.clean(value)
@@ -97,7 +99,7 @@ class EmailFieldTest(TestCase):
         files = []
 
         email = EmailField(
-            label="What is your email address?", 
+            label='What is your email address?', 
             required=False,
             max_score=5)
 
@@ -115,7 +117,7 @@ class EmailFieldTest(TestCase):
         files = []
 
         email = EmailField(
-            label="What is your email address?", 
+            label='What is your email address?', 
             required=False,
             max_score=5)
 
@@ -127,7 +129,7 @@ class EmailFieldTest(TestCase):
         """Test a normal emailfield behaviour with good score and good data"""
 
         email = EmailField(
-            label="What is your email address?", 
+            label='What is your email address?', 
             required=True,
             max_score=5)
 
@@ -136,11 +138,9 @@ class EmailFieldTest(TestCase):
 
 
 
-class YesNoFieldTest(TestCase):
-    def test_yesno(self):
-        """Test a normal yesnofield behaviour"""
-
-        yesno = ChooseYesNoField(label="Are you a good dog?")
+class ScoreYesNoFieldTest(TestCase):
+    def test_yesno_noscore(self):
+        yesno = ChooseYesNoField(label='Are you a good dog?')
 
         self.assertEqual(yesno.clean('Yes'), 'Yes')
         self.assertEqual(yesno.score('Yes'), 0)
@@ -148,12 +148,163 @@ class YesNoFieldTest(TestCase):
 
 
     def test_yesno_score(self):
-        """Test a normal yesnofield behaviour"""
-
-        yesno = ChooseYesNoField(label="Are you a good dog?", max_score=5, min_score=1)
+        yesno = ChooseYesNoField(label='Are you a good dog?', max_score=5, min_score=1)
 
         self.assertEqual(yesno.clean('Yes'), 'Yes')
         self.assertEqual(yesno.score('Yes'), 5)
         self.assertEqual(yesno.score('No'), 1)
 
+
+    def test_yesno_score_custom(self):
+        yesno = ChooseYesNoField(
+            label='Are you a good dog?', scores = [3,2])
+
+        self.assertEqual(yesno.clean('Yes'), 'Yes')
+        self.assertEqual(yesno.score('Yes'), 3)
+        self.assertEqual(yesno.score('No'), 2)
+
+
+
+class ScoreChooseOneFieldTest(TestCase):
+    def test_chooseone_noscore(self):
+        pick = ChooseOneField(
+            label='Choose one', 
+            choices = [
+                '1-2 years',
+                '3-5 years',
+                '5-10 years'
+            ],
+        )
+
+        self.assertEqual(pick.clean('1-2 years'), '1-2 years')
+        self.assertEqual(pick.score('1-2 years'), 0)
+        self.assertEqual(pick.score('5-10 years'), 0)
+
+
+    def test_chooseone_score(self):
+        pick = ChooseOneField(
+            label='Choose one', 
+            max_score=5, 
+            min_score=1,
+            choices = [
+                '1-2 years',
+                '3-5 years',
+                '5-10 years'
+            ],
+        )
+
+        self.assertEqual(pick.clean(''), '')
+        self.assertEqual(pick.score(''), 1)
+
+        self.assertEqual(pick.clean('1-2 years'), '1-2 years')
+        self.assertEqual(pick.score('1-2 years'), 5)
+
+
+    def test_chooseone_score_map(self):
+        pick = ChooseOneField(
+            label='Choose one', 
+            choices = [
+                '1-2 years',
+                '3-5 years',
+                '5-10 years'
+            ],
+            scores = [
+                2,
+                3,
+                4
+            ]
+        )
+
+        self.assertEqual(pick.clean(''), '')
+        self.assertEqual(pick.score(''), 0)
+
+        self.assertEqual(pick.clean('1-2 years'), '1-2 years')
+        self.assertEqual(pick.score('1-2 years'), 2)
+        self.assertEqual(pick.score('3-5 years'), 3)
+        self.assertEqual(pick.score('5-10 years'), 4)
+
+
+    def test_chooseoneopen_noscore(self):
+        choose = ChooseOneOpenField(
+            label='How did you first hear about being a good dog?', 
+            choices=[
+                'A friend/family member told me about it',
+                'I heard about it online',
+                'I saw it at a bookstore',
+                'I found it at a library',
+                'I received an offer in the mail',
+                'I have a copy in my office']
+        )
+
+        self.assertEqual(choose.clean(''), '')
+        self.assertEqual(choose.score(''), 0)
+
+        self.assertEqual(choose.clean('A friend/family member told me about it'), 'A friend/family member told me about it')
+        self.assertEqual(choose.score('A friend/family member told me about it'), 0)
+        self.assertEqual(choose.score('custom value'), 0)
+
+
+    def test_chooseoneopen_score(self):
+        choose = ChooseOneOpenField(
+            label='How did you first hear about being a good dog?', 
+            choices=[
+                'A friend/family member told me about it',
+                'I heard about it online',
+                'I saw it at a bookstore',
+                'I found it at a library',
+                'I received an offer in the mail',
+                'I have a copy in my office'],
+            scores=[20,21,22,31,32,41,11]
+        )
+
+        self.assertEqual(choose.clean(''), '')
+        self.assertEqual(choose.score(''), 0)
+
+        self.assertEqual(choose.clean('A friend/family member told me about it'), 'A friend/family member told me about it')
+        self.assertEqual(choose.score('A friend/family member told me about it'), 20)
+        self.assertEqual(choose.score('custom value'), 11)
+
+
+
+    def test_choosemultiple_score(self):
+        choose = ChooseMultipleField(
+            label='How did you first hear about being a good dog?', 
+            choices=[
+                'A friend/family member told me about it',
+                'I heard about it online',
+                'I saw it at a bookstore',
+                'I found it at a library',
+                'I received an offer in the mail',
+                'I have a copy in my office'],
+            scores=['3','3','3','4','4','5']
+        )
+
+        self.assertEqual(choose.clean([]), [])
+        self.assertEqual(choose.score([]), 0)
+        self.assertEqual(choose.score(['A friend/family member told me about it']), 3)
+        self.assertEqual(choose.score(
+            [
+                'A friend/family member told me about it',
+                'I heard about it online'
+            ]
+        ), 6)
+
+
+    def test_choosemultiple_score_decimal(self):
+        choose = ChooseMultipleField(
+            label='How did you first hear about being a good dog?', 
+            choices=[
+                'A friend/family member told me about it',
+                'I heard about it online',
+                'I saw it at a bookstore',
+            ],
+            scores=['1.1','2.2','3.3']
+        )
+
+        self.assertEqual(choose.score(
+            [
+                'A friend/family member told me about it',
+                'I heard about it online'
+            ]
+        ), Decimal('3.3'))
 

@@ -1,5 +1,9 @@
 import floppyforms as forms
 
+from decimal import *
+
+getcontext.prec = 2
+
 from django.core.exceptions import ValidationError
 
 from .widgets import RadioSelectOpen, RadioSelectOptions
@@ -9,36 +13,66 @@ from .widgets import ChooseOneForEach, ChooseOneForSubject
 
 class ScoreFormFieldBase(object):
     def __init__(self, *args, **kwargs):
-        self.min_score = kwargs.pop('min_score', 0)
-        self.max_score = kwargs.pop('max_score', 0)
+        self.min_score = Decimal(kwargs.pop('min_score', '0'))
+        self.max_score = Decimal(kwargs.pop('max_score', '0'))
         self.correct = kwargs.pop('correct', None)
-        self.scores = kwargs.pop('scores', [])
+        self.scores = map(Decimal, kwargs.pop('scores', []))
         self._score = self.min_score
 
         super(ScoreFormFieldBase, self).__init__(*args, **kwargs)
 
 
+    def get_choice_score(self, cleaned):
+        choices = [x[0] for x in self.choices]
+        if isinstance(self, forms.ChoiceField):
+            if cleaned in choices:
+                index = choices.index(cleaned)
+                self._score = self.scores[index]
+            else:
+                self._score = self.scores[-1]
+
+        elif isinstance(self, forms.MultipleChoiceField):
+            self._score = self.min_score
+            score = []
+            for chosen in cleaned:
+                if chosen in choices:
+                    index = choices.index(chosen)
+                    score.append(Decimal(self.scores[index]))
+            self._score += sum(score)
+
+
+
+
+    def get_correct_score(self, cleaned):
+        self._score = self.max_score if cleaned == self.correct else self.min_score
+
+
     def score(self, v):
+        # unclean, give min_score
+        self._score = self.min_score
         try:
-            self.clean(v)
+            cleaned = self.clean(v)
         except ValidationError, e:
-            pass
+            return self._score
+
+        # clean, give max score
+        if cleaned:
+            self._score = self.max_score
+
+        # requires correct answer:
+        if cleaned and self.correct:
+            self.get_correct_score(cleaned)
+
+        # give appropriate score for answer
+        if cleaned and self.scores and self.choices:
+            self.get_choice_score(cleaned)
+
         return self._score
     
 
+
     def clean(self, value):
-        self._score = self.min_score
-
-        try:
-            cleaned = super(ScoreFormFieldBase, self).clean(value);
-            self._score = self.max_score
-
-            if self.correct:
-                self._score = self.max_score if cleaned == self.correct else self.min_score
-            else:
-                self._score = self.max_score
-        except ValidationError, e:
-            raise
+        cleaned = super(ScoreFormFieldBase, self).clean(value);
         return cleaned
 
 
@@ -84,7 +118,7 @@ class TextField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
             'min_length': min_length,
         })
 
-        super(TextField, self).__init__(**kwargs)
+        super(TextField, self).__init__(*args, **kwargs)
 
 
 
@@ -108,7 +142,6 @@ class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFi
         choices = tuple([(x, x) for x in choices])
 
         widget = RadioSelectOptions(
-            stacked=False,
             required=required)
 
         kwargs.update({
@@ -118,20 +151,18 @@ class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFi
             'correct': correct
         })
 
-        super(ChooseYesNoField, self).__init__(**kwargs)
+        super(ChooseYesNoField, self).__init__(*args, **kwargs)
 
 
 class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
-    def __init__(self, choices, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
-        stacked = kwargs.pop('stacked', None)
         choices = kwargs.pop('choices', [])
         choices = tuple([(x, x) for x in choices])
         widget = kwargs.pop('widget', None)
 
         if widget == None:
             widget = RadioSelectOptions(
-                stacked=stacked,
                 required=required)
         
         kwargs.update({
@@ -140,7 +171,7 @@ class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFiel
             'required': required
         })
         
-        super(ChooseOneField, self).__init__(**kwargs)
+        super(ChooseOneField, self).__init__(*args, **kwargs)
 
 
 
@@ -149,11 +180,10 @@ class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Choice
         required = kwargs.pop('required', False)
 
         choices = [(x, x) for x in choices]
-        choices.append(('other', 'Other'))
+        choices.append(('Other', 'Other'))
         choices = tuple(choices)
         
         widget = RadioSelectOpen(
-            stacked=True,
             required=required)
 
         kwargs.update({
@@ -200,13 +230,13 @@ class ChooseMultipleField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Multi
 
 
 class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
-    def __init__(self, choices=[], subjects=[], stacked=False, *args, **kwargs):
+    def __init__(self, choices=[], subjects=[], *args, **kwargs):
         required = kwargs.pop('required', False)
         error_messages = {
             'required': 'These fields are required.'
         }
 
-        fields = tuple([ChooseOneField(subject, choices, widget=ChooseOneForSubject(subject, stacked=stacked, required=required)) for subject in subjects])
+        fields = tuple([ChooseOneField(subject, choices, widget=ChooseOneForSubject(subject, required=required)) for subject in subjects])
         widget = ChooseOneForEach(widgets=tuple([field.widget for field in fields]))
         self.num_fields = len(fields)
 

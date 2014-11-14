@@ -1,7 +1,7 @@
 import floppyforms as forms
 
 from .fields import ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
-from .fields import ChooseOneForEachField, OpenField, EmailField
+from .fields import CharField, EmailField, TextField, ChooseOneForEachField
 
 
 REQUIRED = True
@@ -14,7 +14,7 @@ class SupaSurveyForm(forms.Form):
 
 class SurveyFormSimple(SupaSurveyForm):
     """ This is an example of a static form with no scoring """
-    name = TextField(label="What is your name?")
+    name = CharField(label="What is your name?")
     
     email = EmailField(
         label="What is your email address?",
@@ -47,11 +47,9 @@ class SurveyFormSimple(SupaSurveyForm):
         required=REQUIRED)
 
 
-    write_anything = OpenField(
+    write_anything = TextField(
         label="How would you describe being a good dog to a friend?", 
-        required=REQUIRED
-        max_words=None,
-        min_words=None)
+        required=REQUIRED)
 
 
     choose_multiple = ChooseMultipleField(
