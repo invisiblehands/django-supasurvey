@@ -19,6 +19,9 @@ class ScoreFormFieldBase(object):
         self.scores = map(Decimal, kwargs.pop('scores', []))
         self._score = self.min_score
 
+        if (self.scores): 
+            self.max_score = self.scores[-1]
+
         super(ScoreFormFieldBase, self).__init__(*args, **kwargs)
 
 

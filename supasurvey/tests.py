@@ -13,7 +13,8 @@ try:
 except ImportError:
     from django.utils import simplejson as json
 
-from .fields import EmailField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
+from .forms import SupaSurveyForm
+from .fields import CharField, EmailField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 
 
@@ -265,7 +266,6 @@ class ScoreChooseOneFieldTest(TestCase):
         self.assertEqual(choose.score('custom value'), 11)
 
 
-
     def test_choosemultiple_score(self):
         choose = ChooseMultipleField(
             label='How did you first hear about being a good dog?', 
@@ -307,4 +307,65 @@ class ScoreChooseOneFieldTest(TestCase):
                 'I heard about it online'
             ]
         ), Decimal('3.3'))
+
+
+
+
+
+class TestSupaSurveyForm(SupaSurveyForm):
+    name = CharField(
+        label="What is your name?",
+        min_score=0,
+        max_score=2)
+    
+    email = EmailField(
+        label="What is your email address?",
+        min_score=0,
+        max_score=2)
+
+    yes_no = ChooseYesNoField(
+        label="Are you a good dog?", 
+        min_score=0,
+        max_score=10)
+
+    choose_one = ChooseOneField(
+        label="If yes, how long have you been a good dog?", 
+        choices = [
+            "1-2 years",
+            "3-5 years",
+            "5-10 years"],
+        scores = [
+            3,4,5
+        ])
+
+
+
+class ScoreYesNoFieldTest(TestCase):
+    def test_form_nopost_noscore(self):
+        form = SupaSurveyForm()
+        self.assertFalse(form.is_valid())
+
+    def test_form_score(self):
+        form = SupaSurveyForm()
+        self.assertEquals(form.get_score(), 0)
+
+    def test_form_score(self):
+        data = {}
+        form = SupaSurveyForm(data)
+        self.assertEquals(form.get_score(), 0)
+
+    def test_form_with_fields(self):
+        data = {
+            'email': 'codydjango@gmail.com',
+            'yes_no': 'Yes',
+            'choose_one': '3-5 years'
+        }
+
+        form = TestSupaSurveyForm(data)
+        self.assertEquals(form.get_maxscore(), 19)
+        self.assertEquals(form.get_score(), 16)
+
+
+
+
 
