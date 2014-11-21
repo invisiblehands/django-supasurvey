@@ -5,15 +5,16 @@ from .fields import ChooseYesNoField, ChooseOneField, ChooseOneOpenField, Choose
 from .fields import CharField, EmailField, TextField, ChooseOneForEachField
 
 
-REQUIRED = True
+
 
 
 
 class SupaSurveyForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        super(SupaSurveyForm, self).__init__(*args, **kwargs)
         self._max_score = Decimal(0);
         self._score = Decimal(0);
+
+        super(SupaSurveyForm, self).__init__(*args, **kwargs)
 
 
     def get_score(self):
@@ -45,6 +46,9 @@ class SupaSurveyForm(forms.Form):
                 self._max_score = sum([self._max_score, field.max_score])
 
 
+
+
+# REQUIRED = True
 # class SurveyFormSimple(SupaSurveyForm):
 #     """ This is an example of a static form with no scoring """
 #     name = CharField(label="What is your name?")

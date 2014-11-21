@@ -19,10 +19,20 @@ class ScoreFormFieldBase(object):
         self.scores = map(Decimal, kwargs.pop('scores', []))
         self._score = self.min_score
 
-        if (self.scores): 
-            self.max_score = self.scores[-1]
+        self.max_score = self.get_max_score()
 
         super(ScoreFormFieldBase, self).__init__(*args, **kwargs)
+
+
+    def get_max_score(self):
+        max_score = self.max_score
+        if self.scores:
+            if isinstance(self, forms.ChoiceField):
+                max_score = self.scores[-1]
+            elif isinstance(self, forms.MultipleChoiceField):
+                max_score = sum(self.scores)
+        return max_score
+
 
 
     def get_choice_score(self, cleaned):

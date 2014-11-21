@@ -7,6 +7,8 @@ from django.forms.util import ValidationError
 from django.db import models
 from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.forms.formsets import formset_factory
+from django import forms
 
 try:
     import json
@@ -104,8 +106,10 @@ class ScoreEmailFieldTest(TestCase):
             required=False,
             max_score=5)
 
+
         value = email.widget.value_from_datadict(data, files, 'email')
         self.assertEqual(email.score(value), 0)
+        self.assertEqual(email.get_max_score(), 5)
 
 
     def test_normal_emailfield_with_score_good(self):
@@ -345,16 +349,18 @@ class ScoreYesNoFieldTest(TestCase):
         form = SupaSurveyForm()
         self.assertFalse(form.is_valid())
 
-    def test_form_score(self):
+    def test_form_unbound_score(self):
         form = SupaSurveyForm()
+        self.assertFalse(form.is_valid())
         self.assertEquals(form.get_score(), 0)
 
-    def test_form_score(self):
+    def test_form_bound_blank_score(self):
         data = {}
         form = SupaSurveyForm(data)
+        self.assertTrue(form.is_valid())
         self.assertEquals(form.get_score(), 0)
 
-    def test_form_with_fields(self):
+    def test_form_bound_data_not_valid(self):
         data = {
             'email': 'codydjango@gmail.com',
             'yes_no': 'Yes',
@@ -365,6 +371,85 @@ class ScoreYesNoFieldTest(TestCase):
         self.assertEquals(form.get_maxscore(), 19)
         self.assertEquals(form.get_score(), 16)
 
+    def test_form_bound_data_valid(self):
+        data = {
+            'email': 'codydjango@gmail.com',
+            'yes_no': 'Yes',
+            'choose_one': '3-5 years'
+        }
+
+        form = TestSupaSurveyForm(data)
+        self.assertTrue(form.is_valid())
+        self.assertEquals(form.get_maxscore(), 19)
+        self.assertEquals(form.get_score(), 16)
+
+
+
+# class TestSupaSurveyForm1(SupaSurveyForm):
+#     name = CharField(
+#         label="What is your name?",
+#         min_score=0,
+#         max_score=2)
+    
+#     email = EmailField(
+#         label="What is your email address?",
+#         min_score=0,
+#         max_score=2)
+
+#     yes_no = ChooseYesNoField(
+#         label="Are you a good dog?", 
+#         min_score=0,
+#         max_score=10)
+
+#     choose_one = ChooseOneField(
+#         label="If yes, how long have you been a good dog?", 
+#         choices = [
+#             "1-2 years",
+#             "3-5 years",
+#             "5-10 years"],
+#         scores = [
+#             3,4,5
+#         ])
+
+
+# class TestSupaSurveyForm2(SupaSurveyForm):
+#     label = CharField(
+#         label="What is your profession?",
+#         min_score=0,
+#         max_score=2)
+
+
+# class ArticleForm(forms.Form):
+#     title = forms.CharField()
+#     pub_date = forms.DateField()
+
+
+
+
+# class FormSetTest(TestCase):
+#     def test_1(self):
+#         FormSet = formset_factory(TestSupaSurveyForm2)
+#         formset = FormSet()
+#         for form in formset:
+#             print 'form', form
+
+#             # print form.as_table()
+
+
+    # def test_formset(self):
+    #     FormClasses = [
+    #         TestSupaSurveyForm1,
+    #         TestSupaSurveyForm2
+    #     ]
+
+
+
+    #     for FC in FormClasses:
+    #         FormSet = formset_factory(FC, extra=1, max_num=3)
+    #         formset = FormSet()
+
+    #         for form in formset:
+    #             print form
 
 
 
