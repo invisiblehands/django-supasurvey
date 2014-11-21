@@ -15,8 +15,8 @@ try:
 except ImportError:
     from django.utils import simplejson as json
 
-from .forms import SupaSurveyForm
-from .fields import CharField, EmailField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
+from supasurvey.forms import SupaSurveyForm
+from supasurvey.fields import CharField, EmailField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 
 
@@ -385,71 +385,89 @@ class ScoreYesNoFieldTest(TestCase):
 
 
 
-# class TestSupaSurveyForm1(SupaSurveyForm):
-#     name = CharField(
-#         label="What is your name?",
-#         min_score=0,
-#         max_score=2)
+
+
+
+class TestFormRegular(forms.Form):
+    title = forms.CharField()
+    pub_date = forms.DateField()
+    label = CharField(
+        label='What is your profession?',
+        min_score=0,
+        max_score=2)
+
+
+class TestFormSupa(SupaSurveyForm):
+    title = forms.CharField()
+    pub_date = forms.DateField()
+    label = CharField(
+        label='What is your profession?',
+        min_score=0,
+        max_score=2)
+
+
+
+class TestSupaSurveyQuestion1Form(SupaSurveyForm):
+    name = CharField(
+        label="What is your name?",
+        min_score=0,
+        max_score=2)
     
-#     email = EmailField(
-#         label="What is your email address?",
-#         min_score=0,
-#         max_score=2)
-
-#     yes_no = ChooseYesNoField(
-#         label="Are you a good dog?", 
-#         min_score=0,
-#         max_score=10)
-
-#     choose_one = ChooseOneField(
-#         label="If yes, how long have you been a good dog?", 
-#         choices = [
-#             "1-2 years",
-#             "3-5 years",
-#             "5-10 years"],
-#         scores = [
-#             3,4,5
-#         ])
+    email = EmailField(
+        label="What is your email address?",
+        min_score=0,
+        max_score=2)
 
 
-# class TestSupaSurveyForm2(SupaSurveyForm):
-#     label = CharField(
-#         label="What is your profession?",
-#         min_score=0,
-#         max_score=2)
+
+class TestSupaSurveyQuestion2Form(SupaSurveyForm):
+    label = CharField(
+        label="What is your profession?",
+        min_score=0,
+        max_score=2)
+    
+    yes_no = ChooseYesNoField(
+        label="Are you a good dog?", 
+        min_score=0,
+        max_score=10)
 
 
-# class ArticleForm(forms.Form):
-#     title = forms.CharField()
-#     pub_date = forms.DateField()
+class TestSupaSurveyQuestion3Form(SupaSurveyForm):
+    choose_one = ChooseOneField(
+    label="If yes, how long have you been a good dog?", 
+    choices = [
+        "1-2 years",
+        "3-5 years",
+        "5-10 years"],
+    scores = [
+        3,4,5
+    ])
 
 
 
 
-# class FormSetTest(TestCase):
-#     def test_1(self):
-#         FormSet = formset_factory(TestSupaSurveyForm2)
-#         formset = FormSet()
-#         for form in formset:
-#             print 'form', form
-
-#             # print form.as_table()
+class FormSetTest(TestCase):
+    def test_1(self):
+        formset = formset_factory(TestFormSupa, extra=3)()
+        # for count, form in enumerate(formset):
+        #     print count, form.as_table()
+        self.assertEqual(len(formset), 3)
 
 
-    # def test_formset(self):
-    #     FormClasses = [
-    #         TestSupaSurveyForm1,
-    #         TestSupaSurveyForm2
-    #     ]
+    def test_formset(self):
+        # https://docs.djangoproject.com/en/dev/topics/forms/formsets/#using-more-than-one-formset-in-a-view
+        # http://yergler.net/blog/2009/09/27/nested-formsets-with-django/
+        FormClasses = [
+            TestSupaSurveyQuestion1Form,
+            TestSupaSurveyQuestion2Form,
+            TestSupaSurveyQuestion3Form
+        ]
 
+        for question_id, FC in enumerate(FormClasses):
+            formset = formset_factory(FC, extra=1)(prefix='question_%s' % question_id)
 
-
-    #     for FC in FormClasses:
-    #         FormSet = formset_factory(FC, extra=1, max_num=3)
-    #         formset = FormSet()
-
-    #         for form in formset:
-    #             print form
+            for count, form in enumerate(formset):
+                print count, form.as_table()
 
 
 
