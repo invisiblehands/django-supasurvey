@@ -23,7 +23,7 @@ class TestCommand(Command):
                     'ENGINE': 'django.db.backends.sqlite3'
                 }
             },
-            INSTALLED_APPS = ('supasurvey',)
+            INSTALLED_APPS = ('floppyforms', 'supasurvey',)
         )
 
         from django.core.management import call_command
