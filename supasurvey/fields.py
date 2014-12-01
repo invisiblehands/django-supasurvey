@@ -5,6 +5,7 @@ from decimal import *
 getcontext.prec = 2
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 from .widgets import RadioSelectOpen, RadioSelectOptions
 from .widgets import ChooseOneForEach, ChooseOneForSubject
@@ -147,6 +148,52 @@ class EmailField(OutputFormatFieldBase, ScoreFormFieldBase, forms.EmailField):
 
 
 
+
+class IntegerField(OutputFormatFieldBase, ScoreFormFieldBase, forms.IntegerField):
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+
+        kwargs.update({
+            'required': required
+        })
+        
+        super(IntegerField, self).__init__(*args, **kwargs)
+
+
+
+
+class MoneyField(OutputFormatFieldBase, ScoreFormFieldBase, forms.DecimalField):
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+
+        kwargs.update({
+            'required': required,
+            'max_digits': 8,
+            'decimal_places': 2
+        })
+        
+        super(MoneyField, self).__init__(*args, **kwargs)
+
+
+class PercentField(OutputFormatFieldBase, ScoreFormFieldBase, forms.DecimalField):
+    default_validators = [
+        MinValueValidator(0),
+        MaxValueValidator(100),
+    ]
+
+    def __init__(self, *args, **kwargs):
+        required = kwargs.pop('required', False)
+
+        kwargs.update({
+            'required': required,
+            'max_digits': 5,
+            'decimal_places': 2
+        })
+        
+        super(PercentField, self).__init__(*args, **kwargs)
+
+
+
 class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
@@ -189,9 +236,9 @@ class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFiel
 
 
 class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
-    def __init__(self, choices, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
-
+        choices = kwargs.pop('choices', [])
         choices = [(x, x) for x in choices]
         choices.append(('Other', 'Other'))
         choices = tuple(choices)
@@ -205,7 +252,7 @@ class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Choice
             'required': required
         })
 
-        super(ChooseOneOpenField, self).__init__(**kwargs)
+        super(ChooseOneOpenField, self).__init__(*args, **kwargs)
 
     def clean(self, value, *args, **kwargs):
         if value == 'Other':
