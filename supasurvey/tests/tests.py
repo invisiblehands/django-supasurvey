@@ -1,29 +1,27 @@
+import json
+
 from decimal import *
 from collections import OrderedDict
 
+from django import forms
+from django.forms.util import ValidationError
+from django.forms.formsets import formset_factory
 from django.core.serializers import deserialize, serialize
 from django.core.serializers.base import DeserializationError
-from django.forms.util import ValidationError
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.test import TestCase
-from django.core.exceptions import ValidationError
-from django.forms.formsets import formset_factory
-from django import forms
-
-try:
-    import json
-except ImportError:
-    from django.utils import simplejson as json
 
 from supasurvey.forms import SupaSurveyForm
-from supasurvey.fields import CharField, EmailField, MoneyField, ChooseYesNoField, ChooseOneField, ChooseOneOpenField, ChooseMultipleField
+from supasurvey.fields import CharField, EmailField, MoneyField, ChooseYesNoField
+from supasurvey.fields import ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 
 
 class ScoreEmailFieldTest(TestCase):
     def test_normal_emailfield_no_data(self):
         """Test a normal emailfield behaviour"""
-        
+
         data = {}
         files = []
 
@@ -43,8 +41,7 @@ class ScoreEmailFieldTest(TestCase):
 
     def test_normal_emailfield_blank(self):
         """Test a normal emailfield behaviour with blank data"""
-        
-        
+
         data = {
             'email': ''
         }
@@ -63,7 +60,7 @@ class ScoreEmailFieldTest(TestCase):
 
     def test_normal_emailfield_bad_data(self):
         """Test a normal emailfield behaviour with bad data, should raise validationError"""
-        
+
         data = {
             'email': 'cody'
         }
@@ -71,14 +68,14 @@ class ScoreEmailFieldTest(TestCase):
 
         email = EmailField(label='What is your email address?', required=False)
         value = email.widget.value_from_datadict(data, files, 'email')
-        
+
         self.assertEqual(value, data['email'])
         self.assertRaises(ValidationError, email.clean, value)
 
 
     def test_normal_emailfield_good_data(self):
         """Test a normal emailfield behaviour with good data"""
-        
+
         stub = 'cody@gmail.com'
         data = {
             'email': stub
@@ -94,7 +91,7 @@ class ScoreEmailFieldTest(TestCase):
 
     def test_normal_emailfield_with_score_bad(self):
         """Test a normal emailfield behaviour with score and bad data"""
-        
+
         stub = 'cody'
         data = {
             'email': stub
@@ -102,10 +99,9 @@ class ScoreEmailFieldTest(TestCase):
         files = []
 
         email = EmailField(
-            label='What is your email address?', 
+            label='What is your email address?',
             required=False,
             max_score=5)
-
 
         value = email.widget.value_from_datadict(data, files, 'email')
         self.assertEqual(email.score(value), 0)
@@ -114,7 +110,7 @@ class ScoreEmailFieldTest(TestCase):
 
     def test_normal_emailfield_with_score_good(self):
         """Test a normal emailfield behaviour with good score and good data"""
-        
+
         stub = 'cody@gmail.com'
         data = {
             'email': stub
@@ -122,7 +118,7 @@ class ScoreEmailFieldTest(TestCase):
         files = []
 
         email = EmailField(
-            label='What is your email address?', 
+            label='What is your email address?',
             required=False,
             max_score=5)
 
@@ -134,7 +130,7 @@ class ScoreEmailFieldTest(TestCase):
         """Test a normal emailfield behaviour with good score and good data"""
 
         email = EmailField(
-            label='What is your email address?', 
+            label='What is your email address?',
             required=True,
             max_score=5)
 
@@ -146,7 +142,7 @@ class ScoreEmailFieldTest(TestCase):
         """Test a normal moneyfield behaviour"""
 
         email = MoneyField(
-            label='How much money do you have?', 
+            label='How much money do you have?',
             required=False,
             min_score=0,
             max_score=5)
@@ -192,11 +188,10 @@ class ScoreYesNoFieldTest(TestCase):
 
 
 
-
 class ScoreChooseOneFieldTest(TestCase):
     def test_chooseone_noscore(self):
         pick = ChooseOneField(
-            label='Choose one', 
+            label='Choose one',
             choices = [
                 '1-2 years',
                 '3-5 years',
@@ -211,8 +206,8 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_chooseone_score(self):
         pick = ChooseOneField(
-            label='Choose one', 
-            max_score=5, 
+            label='Choose one',
+            max_score=5,
             min_score=1,
             choices = [
                 '1-2 years',
@@ -230,7 +225,7 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_chooseone_score_map(self):
         pick = ChooseOneField(
-            label='Choose one', 
+            label='Choose one',
             choices = [
                 '1-2 years',
                 '3-5 years',
@@ -254,7 +249,7 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_chooseoneopen_noscore(self):
         choose = ChooseOneOpenField(
-            label='How did you first hear about being a good dog?', 
+            label='How did you first hear about being a good dog?',
             choices=[
                 'A friend/family member told me about it',
                 'I heard about it online',
@@ -274,7 +269,7 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_chooseoneopen_score(self):
         choose = ChooseOneOpenField(
-            label='How did you first hear about being a good dog?', 
+            label='How did you first hear about being a good dog?',
             choices=[
                 'A friend/family member told me about it',
                 'I heard about it online',
@@ -295,7 +290,7 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_choosemultiple_score(self):
         choose = ChooseMultipleField(
-            label='How did you first hear about being a good dog?', 
+            label='How did you first hear about being a good dog?',
             choices=[
                 'A friend/family member told me about it',
                 'I heard about it online',
@@ -319,7 +314,7 @@ class ScoreChooseOneFieldTest(TestCase):
 
     def test_choosemultiple_score_decimal(self):
         choose = ChooseMultipleField(
-            label='How did you first hear about being a good dog?', 
+            label='How did you first hear about being a good dog?',
             choices=[
                 'A friend/family member told me about it',
                 'I heard about it online',
@@ -337,34 +332,30 @@ class ScoreChooseOneFieldTest(TestCase):
 
 
 
-
-
 class TestSupaSurveyForm(SupaSurveyForm):
     name = CharField(
         label="What is your name?",
         min_score=0,
         max_score=2)
-    
+
     email = EmailField(
         label="What is your email address?",
         min_score=0,
         max_score=2)
 
     yes_no = ChooseYesNoField(
-        label="Are you a good dog?", 
+        label="Are you a good dog?",
         min_score=0,
         max_score=10)
 
     choose_one = ChooseOneField(
-        label="If yes, how long have you been a good dog?", 
+        label="If yes, how long have you been a good dog?",
         choices = [
             "1-2 years",
             "3-5 years",
             "5-10 years"],
         scores = [
-            3,4,5
-        ])
-
+            3,4,5])
 
 
 class ScoreYesNoFieldTest(TestCase):
@@ -408,9 +399,6 @@ class ScoreYesNoFieldTest(TestCase):
 
 
 
-
-
-
 class TestFormRegular(forms.Form):
     title = forms.CharField()
     pub_date = forms.DateField()
@@ -418,6 +406,7 @@ class TestFormRegular(forms.Form):
         label='What is your profession?',
         min_score=0,
         max_score=2)
+
 
 
 class TestFormSupa(SupaSurveyForm):
@@ -435,7 +424,7 @@ class TestSupaSurveyQuestion1Form(SupaSurveyForm):
         label="What is your name?",
         min_score=0,
         max_score=2)
-    
+
     email = EmailField(
         label="What is your email address?",
         min_score=0,
@@ -448,16 +437,17 @@ class TestSupaSurveyQuestion2Form(SupaSurveyForm):
         label="What is your profession?",
         min_score=0,
         max_score=2)
-    
+
     yes_no = ChooseYesNoField(
-        label="Are you a good dog?", 
+        label="Are you a good dog?",
         min_score=0,
         max_score=10)
 
 
+
 class TestSupaSurveyQuestion3Form(SupaSurveyForm):
     choose_one = ChooseOneField(
-    label="If yes, how long have you been a good dog?", 
+    label="If yes, how long have you been a good dog?",
     choices = [
         "1-2 years",
         "3-5 years",
@@ -465,7 +455,6 @@ class TestSupaSurveyQuestion3Form(SupaSurveyForm):
     scores = [
         3,4,5
     ])
-
 
 
 
@@ -491,10 +480,3 @@ class FormSetTest(TestCase):
 
             for count, form in enumerate(formset):
                 print count, form.as_table()
-
-
-
-
-
-
-
