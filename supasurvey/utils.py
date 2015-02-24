@@ -1,13 +1,9 @@
-import csv, os, codecs, collections, pprint, json, copy
+import csv, os, codecs, collections, json, copy
+
+from decimal import Decimal
 
 from django.utils.html import conditional_escape
 from django.conf import settings
-from django.forms.formsets import BaseFormSet, formset_factory
-from django import forms
-
-from supasurvey.forms import SupaSurveyForm
-
-pp = pprint.PrettyPrinter(depth=6)
 
 
 
@@ -32,82 +28,9 @@ def flatatt(attrs):
 
 
 
-class SupaSurveyFormSet(BaseFormSet):
-    def __init__(self, *args, **kwargs):
-        self._schema = kwargs.pop('schema', None)
-        super(SupaSurveyFormSet, self).__init__(*args, **kwargs)
-        for form in self.forms:
-            form.empty_permitted = True
-
-    def add_fields(self, form, index):
-        super(SupaSurveyFormSet, self).add_fields(form, index)
-        form.build(self._schema)
-
-
-
-
-class FormBuilder(object):
-    """ takes list of questionset schemas and puts out a list of augmented formsets 
-    to be used in the templates or with a templatetag."""
-
-    def __init__(self, *args, **kwargs):
-        super(FormBuilder, self).__init__(*args, **kwargs)
-
-
-    def create_form(self, questionset_schema):
-        return SupaSurveyForm(schema=questionset_schema)
-
-
-    def create_formset(self, questionset_schema, prefix, POST=None, FILES=None):
-        qss = questionset_schema
-        FormSet = formset_factory(SupaSurveyForm, extra=1, formset=SupaSurveyFormSet)
-        formset = FormSet(POST, FILES, prefix=prefix, schema=qss)
-
-        if hasattr(formset, 'meta'):
-            raise Exception ('has meta')
-
-        formset.meta = {
-            'id': qss.get('id', False),
-            'title': qss.get('title', False),
-            'description': qss.get('description', False),
-            'repeater': qss.get('repeater', False)
-        }
-
-        return formset
-
-
-    def get_prefix(self, questionset_id):
-        return 'questionset_%s' % questionset_id
-
-
-    def get_formsets(self, schemas, POST=None, FILES=None):
-        formsets = []
-
-        if not schemas:
-            raise Exception('no schema provided.')
-
-        questionsets = copy.deepcopy(schemas).get('questionsets')
-
-        for questionset_id, questionset_schema in questionsets.items():
-            prefix = self.get_prefix(questionset_id)
-            formset = self.create_formset(
-                    questionset_schema=questionset_schema, 
-                    prefix=prefix, 
-                    POST=POST, 
-                    FILES=None)
-            formsets.append(formset)
-            # print 'completed questionset', questionset_id
-
-        return formsets
-
-
-
-
-
-
 
 # # http://stackoverflow.com/questions/1846135/python-csv-library-with-unicode-utf-8-support-that-just-works
-class UnicodeCsvReader(object):
+class UnicodeCSVReader(object):
     def __init__(self, f, encoding="utf-8", **kwargs):
         self.csv_reader = csv.reader(f, **kwargs)
         self.encoding = encoding
@@ -117,7 +40,7 @@ class UnicodeCsvReader(object):
 
     def next(self):
         # read and split the csv row into fields
-        row = self.csv_reader.next() 
+        row = self.csv_reader.next()
         # now decode
         return [unicode(cell, self.encoding) for cell in row]
 
@@ -130,7 +53,7 @@ class UnicodeCsvReader(object):
 class UnicodeDictReader(csv.DictReader):
     def __init__(self, f, encoding="utf-8", fieldnames=None, **kwds):
         csv.DictReader.__init__(self, f, fieldnames=fieldnames, **kwds)
-        self.reader = UnicodeCsvReader(f, encoding=encoding, **kwds)
+        self.reader = UnicodeCSVReader(f, encoding=encoding, **kwds)
 
 
 
@@ -143,10 +66,9 @@ class SchemaHandler(object):
 
     def __init__(self, *args, **kwargs):
         self.levels = ['section', 'questionset', 'answer']
-        self.builder = FormBuilder()
 
         super(SchemaHandler, self).__init__(*args, **kwargs)
-    
+
 
     def read_lines(self, pth):
         with codecs.open(pth, 'r', 'utf-8') as f:
@@ -176,14 +98,24 @@ class SchemaHandler(object):
             key = 'questionset'
             questionsets = data[section_id]['questionsets']
             questionset_id = row.get('%s_id' % key)
+
+            repeater_label = row.get('%s_repeater_label' % key, False)
+            is_repeater = True if repeater_label else False
+
             if not questionsets.has_key(questionset_id):
                 questionset = {
                     'id': questionset_id,
                     'title': row.get('%s_title' % key),
                     'description': row.get('%s_description' % key),
-                    'repeater': row.get('%s_repeater' % key),
+                    'repeater': is_repeater,
+                    'repeater_label': repeater_label,
                     'answers': collections.OrderedDict()
                 }
+
+                dependencies = row.get('dependencies')
+                if dependencies:
+                    questionset['dependencies'] = dependencies
+
                 questionsets[questionset_id] = questionset
                 answer_id = 0
 
@@ -193,13 +125,25 @@ class SchemaHandler(object):
             answer_id = answer_id + 1
             answer = {
                 'id': answer_id,
-                'type': row.get('%s_type' % key),
-                'label': row.get('%s_label' % key),
-                'options': row.get('%s_options' % key),
-                'maxscore': row.get('%s_maxscore' % key),
-                'scoring': row.get('%s_scoring' % key),
-                'correct': row.get('%s_correct' % key)
             }
+
+            answer_type = row.get('%s_type' % key)
+            answer_label = row.get('%s_label' % key)
+            answer_options = row.get('%s_options' % key)
+            answer_minscore = row.get('%s_minscore' % key)
+            answer_maxscore = row.get('%s_maxscore' % key)
+            answer_scoring = row.get('%s_scoring' % key)
+            answer_correct = row.get('%s_correct' % key)
+
+            answer['label'] = answer_label
+
+            if answer_type: answer['type'] = answer_type
+            if answer_options: answer['options'] = answer_options
+            if answer_minscore: answer['minscore'] = answer_minscore
+            if answer_maxscore: answer['maxscore'] = answer_maxscore
+            if answer_scoring: answer['scoring'] = answer_scoring
+            if answer_correct: answer['correct'] = answer_correct
+
             answers[answer_id] = answer
 
 
@@ -238,7 +182,7 @@ class SchemaHandler(object):
             json_data = json.dumps(self.data, sort_keys=False, indent=4, separators=(',', ': '))
         else:
             json_data = json.dumps(self.data)
-        
+
         return json_data
 
 
@@ -257,73 +201,47 @@ class SchemaHandler(object):
         self.data = json.loads(self.json_raw, object_pairs_hook=collections.OrderedDict)
 
 
-    def get_all_answer_types(self):
-        if self.raw:
-            lst = [col.get('answer_type') for col in self.raw]
-            lst = list(set(lst))
-            return lst
-        return []
+    def get_questionsets(self, section_id):
+        section_schema = self.get_section_schema(section_id)
+        return copy.deepcopy(section_schema).get('questionsets')
 
 
-    def get_section(self, num=None, POST=None, FILES=None):
-        if num:
-            self.set_section(num)
-
-        section = self.data.get(self._section_id)
-
-        return {
-            'display': section.get('display'),
-            'title': section.get('title'),
-            'formsets': self.get_formsets(POST, FILES)
-        }
-
-    def set_section(self, num):
-        self._section_id = unicode(num)
-
-
-    def get_formsets(self, POST=None, FILES=None):
-        section_schema = self.data.get(self._section_id)
-
-        return self.builder.get_formsets(section_schema, POST, FILES)
+    def get_section_schema(self, section_id):
+        return self.data.get(unicode(section_id))
 
 
 
-
-
-
-def get_schema_handler():
+def get_schema_handler(survey):
     schema_handler = SchemaHandler()
-    
+
+    # currently reading from file
+    # schema_handler.survey = survey
+    # schema_handler.data = survey.data
+
+    # replace data with this
     in_csv_pth = os.path.join(settings.PROJECT_ROOT, 'bin', 'par.csv')
     out_json_pth = os.path.join(settings.PROJECT_ROOT, 'bin', 'par_out.json')
     out_json_pth_processed = os.path.join(settings.PROJECT_ROOT, 'bin', 'par_out_processed.json')
     in_json_pth = os.path.join(settings.PROJECT_ROOT, 'bin', 'par_out.json')
-    
-    schema_handler.read_lines(in_csv_pth)
-    schema_handler.parse_as_dct()
-    schema_handler.nest()
-    schema_handler.data_bak1 = schema_handler.data
-    schema_handler.write_json(out_json_pth, pretty=True)
+
+    DEVELOPLMENT = getattr(settings, 'SUPASURVEY_DEVELOPMENT', True)
+    if DEVELOPLMENT:
+        schema_handler.read_lines(in_csv_pth)
+        schema_handler.parse_as_dct()
+        schema_handler.nest()
+        schema_handler.data_bak1 = schema_handler.data
+        schema_handler.write_json(out_json_pth, pretty=True)
+
     schema_handler.read_json(in_json_pth)
     schema_handler.to_python()
-    schema_handler.flatten()
-    schema_handler.nest()
-    schema_handler.data_bak2 = schema_handler.data
-    schema_handler.write_json(out_json_pth_processed, pretty=True)
+    # schema_handler.flatten()
+    # schema_handler.nest()
+    # schema_handler.data_bak2 = schema_handler.data
+    # schema_handler.write_json(out_json_pth_processed, pretty=True)
+    # assert schema_handler.data_bak1 == schema_handler.data_bak2
 
-    assert schema_handler.data_bak1 == schema_handler.data_bak2
-
-    lst = schema_handler.get_all_answer_types()
+    # save updated data
+    # survey.data = schema_handler.data
+    # survey.save()
 
     return schema_handler
-
-
-
-def start():
-    schema_handler = get_schema_handler()
-    for section_id in range(1, 9):
-        schema_handler.set_section(section_id)
-        formsets = schema_handler.get_formsets()
-
-        print 'section_id: %s formsets: %s' % (section_id, len(formsets))
-

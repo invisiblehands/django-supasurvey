@@ -7,6 +7,8 @@ from supasurvey.fields import ChooseMultipleField, ChooseOneForEachField
 from supasurvey.fields import CharField, IntegerField, EmailField, TextField, PercentField, MoneyField
 from multiupload.fields import MultiFileField
 
+
+
 class SupaSurveyForm(forms.Form):
     FIELDMAP = {
         'radio': ChooseOneField,
@@ -28,7 +30,7 @@ class SupaSurveyForm(forms.Form):
         self._schema = kwargs.pop('schema', False)
 
         super(SupaSurveyForm, self).__init__(*args, **kwargs)
-        
+
         self.build()
 
 
@@ -111,17 +113,17 @@ class SupaSurveyForm(forms.Form):
 # class SurveyFormSimple(SupaSurveyForm):
 #     """ This is an example of a static form with no scoring """
 #     name = CharField(label="What is your name?")
-    
+
 #     email = EmailField(
 #         label="What is your email address?",
 #         required=REQUIRED)
 
 #     yes_no = ChooseYesNoField(
-#         label="Are you a good dog?", 
+#         label="Are you a good dog?",
 #         required=REQUIRED)
 
 #     choose_one = ChooseOneField(
-#         label="If yes, how long have you been a good dog?", 
+#         label="If yes, how long have you been a good dog?",
 #         choices = [
 #             "1-2 years",
 #             "3-5 years",
@@ -131,7 +133,7 @@ class SupaSurveyForm(forms.Form):
 
 
 #     choose_one_open = ChooseOneOpenField(
-#         label="How did you first hear about being a good dog?", 
+#         label="How did you first hear about being a good dog?",
 #         choices=[
 #             "A friend/family member told me about it",
 #             "I heard about it online",
@@ -143,12 +145,12 @@ class SupaSurveyForm(forms.Form):
 
 
 #     write_anything = TextField(
-#         label="How would you describe being a good dog to a friend?", 
+#         label="How would you describe being a good dog to a friend?",
 #         required=REQUIRED)
 
 
 #     choose_multiple = ChooseMultipleField(
-#         label="What are you favorite parts of being a good dog??", 
+#         label="What are you favorite parts of being a good dog??",
 #         choices = [
 #             "Treats",
 #             "Pats on the head",
@@ -162,11 +164,11 @@ class SupaSurveyForm(forms.Form):
 #     choose_one_for_each = ChooseOneForEachField(
 #         label="For each activity, should there be more or less?",
 #         choices=[
-#             "More", 
-#             "Same", 
+#             "More",
+#             "Same",
 #             "Less"],
 #         subjects=[
-#             "Treats", 
+#             "Treats",
 #             "Pats on the head",
 #             "Belly rubs",
 #             "Toys",
