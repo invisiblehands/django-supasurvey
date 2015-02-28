@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-#
-from distutils.core import setup
-from distutils.core import Command
+
+from setuptools import setup
+from setuptools import Command
 
 
 class TestCommand(Command):
@@ -15,7 +15,7 @@ class TestCommand(Command):
 
     def run(self):
         from django.conf import settings
-        
+
         settings.configure(
             DATABASES = {
                 'default': {
@@ -31,7 +31,7 @@ class TestCommand(Command):
 
         if django.VERSION[:2] >= (1, 7):
             django.setup()
-        
+
         call_command('test', 'supasurvey')
 
 
@@ -45,12 +45,12 @@ setup(name='supasurvey',
     description='Some code for making some surveys :)',
     long_description=open('README.md').read(),
     install_requires=[
-        'Django>=1.6.0', 
-        'jsonfield>=1.0.0', 
+        'Django>=1.6.0',
+        'jsonfield>=1.0.0',
         'django-floppyforms>=1.2.0'
     ],
     tests_require=[
-        'Django>=1.6.0', 
+        'Django>=1.6.0',
         'jsonfield>=1.0.0',
         'django-floppyforms>=1.2.0'
     ],
