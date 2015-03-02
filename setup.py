@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+import os, sys
+
+from setuptools import setup, find_packages
 from setuptools import Command
+
+
+README = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 
 class TestCommand(Command):
@@ -23,43 +29,51 @@ class TestCommand(Command):
                     'ENGINE': 'django.db.backends.sqlite3'
                 }
             },
-            INSTALLED_APPS = ('floppyforms', 'supasurvey',)
+            INSTALLED_APPS = (
+                'floppyforms',
+                'supasurvey',
+            )
         )
 
-        from django.core.management import call_command
         import django
 
         if django.VERSION[:2] >= (1, 7):
+            from django.core.management import call_command
             django.setup()
-
-        call_command('test', 'supasurvey')
+            call_command('test', 'multifilefield')
+        else:
+            from multifilefield.runtests import runtests
+            runtests()
 
 
 setup(name='supasurvey',
-    version='0.0.1',
-    packages=['supasurvey'],
-    license='MIT',
-    author='Cody Redmond',
-    author_email='cody@invisiblehands.ca',
-    url='https://github.com/invisiblehands/django-supasurvey/',
+    version='0.0.5',
+    packages=find_packages(),
+    include_package_data=True,
+    license='BSD License',
     description='Some code for making some surveys :)',
-    long_description=open('README.md').read(),
+    long_description=README,
+    url='https://github.com/invisiblehands/django-supasurvey/',
+    author_email='cody@invisiblehands.ca',
+    author='Cody Redmond',
     install_requires=[
         'Django>=1.6.0',
         'jsonfield>=1.0.0',
-        'django-floppyforms>=1.2.0'
+        'django-floppyforms>=1.1.0'
     ],
     tests_require=[
         'Django>=1.6.0',
         'jsonfield>=1.0.0',
-        'django-floppyforms>=1.2.0'
+        'django-floppyforms>=1.1.0'
     ],
     cmdclass={'test': TestCommand},
     classifiers=[
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
+        'Framework :: Django',
+        'License :: OSI Approved :: BSD License'
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
-        'Framework :: Django',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content'
     ],
 )

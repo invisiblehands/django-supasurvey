@@ -1,3 +1,0 @@
-Django>=1.6
-django-floppyforms>=1.2.0
-jsonfield>=1.0.0
