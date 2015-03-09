@@ -42,7 +42,7 @@ class TestCommand(Command):
             django.setup()
             call_command('test', 'multifilefield')
         else:
-            from multifilefield.runtests import runtests
+            from supasurvey.runtests import runtests
             runtests()
 
 
