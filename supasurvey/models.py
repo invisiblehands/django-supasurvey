@@ -119,12 +119,8 @@ class SurveyResponseManager(models.Manager):
 
 
 class SurveyResponse(models.Model):
-    """ This is a survey response. I don't think it should contain any
-    user information, as that belongs in the user profile.  But it should
-    be able to be linked to a user profile."""
     objects = SurveyResponseManager()
-    survey = models.ForeignKey('Survey', verbose_name='survey', related_name='submissions')
-    company = models.ForeignKey('app.Company', verbose_name='company', related_name='submissions')
+    survey = models.ForeignKey('supasurvey.Survey', verbose_name='survey', related_name='submissions')
     year = models.IntegerField('year', choices=YEAR_CHOICES, null=True, blank=True)
     status = models.CharField('state', choices=SURVEY_RESPONSE_CHOICES, max_length=255, null=True, blank=True)
 
@@ -458,7 +454,7 @@ class SurveyResponse(models.Model):
 
 class QuestionResponse(models.Model):
     number = models.IntegerField('question number', null=False, blank=False)
-    survey_response = models.ForeignKey('SurveyResponse', verbose_name='Survey Response', related_name='question_responses')
+    survey_response = models.ForeignKey('supasurvey.SurveyResponse', verbose_name='Survey Response', related_name='question_responses')
     survey_section = models.IntegerField('section', choices=SURVEY_SECTION_CHOICES, max_length=255, null=True, blank=True)
 
     schema_data = JSONField('schema data', load_kwargs={'object_pairs_hook': collections.OrderedDict}, null=True, blank=True)
@@ -870,17 +866,6 @@ class QuestionResponse(models.Model):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 class UploadedFile(models.Model):
     def upload_to(instance, name):
         report_id = instance.question_response.survey_response.id
@@ -918,7 +903,6 @@ class UploadedFile(models.Model):
         return settings.REPORT_URL + '%s/%s' % (report_id, self.basename)
 
 
-
 def post_survey_create(sender, instance, created, *args, **kwargs):
     if created:
         instance.post_create()
@@ -931,4 +915,3 @@ def post_question_create(sender, instance, created, *args, **kwargs):
 
 post_save.connect(post_survey_create, sender=SurveyResponse)
 post_save.connect(post_question_create, sender=QuestionResponse)
-
