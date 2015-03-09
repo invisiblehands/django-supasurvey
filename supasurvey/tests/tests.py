@@ -461,14 +461,10 @@ class TestSupaSurveyQuestion3Form(SupaSurveyForm):
 class FormSetTest(TestCase):
     def test_1(self):
         formset = formset_factory(TestFormSupa, extra=3)()
-        # for count, form in enumerate(formset):
-        #     print count, form.as_table()
         self.assertEqual(len(formset), 3)
 
 
     def test_formset(self):
-        # https://docs.djangoproject.com/en/dev/topics/forms/formsets/#using-more-than-one-formset-in-a-view
-        # http://yergler.net/blog/2009/09/27/nested-formsets-with-django/
         FormClasses = [
             TestSupaSurveyQuestion1Form,
             TestSupaSurveyQuestion2Form,
@@ -477,6 +473,3 @@ class FormSetTest(TestCase):
 
         for question_id, FC in enumerate(FormClasses):
             formset = formset_factory(FC, extra=1)(prefix='question_%s' % question_id)
-
-            for count, form in enumerate(formset):
-                print count, form.as_table()
