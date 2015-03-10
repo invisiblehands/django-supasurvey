@@ -86,16 +86,6 @@ class ScoreYesNoFieldTest(TestCase):
 
 
 
-class TestFormRegular(forms.Form):
-    title = forms.CharField()
-    pub_date = forms.DateField()
-    label = CharField(
-        label='What is your profession?',
-        min_score=0,
-        max_score=2)
-
-
-
 class TestFormSupa(SupaSurveyForm):
     title = forms.CharField()
     pub_date = forms.DateField()
