@@ -6,7 +6,7 @@ from django.forms.util import ValidationError
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from supasurvey.fields import CharField, EmailField, MoneyField, ChooseYesNoField
+from supasurvey.fields import CharField, EmailField, ChooseYesNoField
 from supasurvey.fields import ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 
@@ -129,28 +129,6 @@ class ScoreEmailFieldTest(TestCase):
 
         self.assertEqual(email.score(''), 0)
         self.assertEqual(email.score('codydjango@gmail.com'), 5)
-
-
-    def test_moneyfield(self):
-        """Test a normal moneyfield behaviour"""
-
-        email = MoneyField(
-            label='How much money do you have?',
-            required=False,
-            min_score=0,
-            max_score=5)
-
-        self.assertEqual(email.score(''), 0)
-        self.assertEqual(email.score('10'), 5)
-        self.assertEqual(email.score(''), 0)
-        self.assertEqual(email.score('10.30'), 5)
-
-        self.assertEqual(email.clean('10'), Decimal(10.00))
-        self.assertEqual(email.clean('10'), Decimal(10))
-
-        c = getcontext().copy()
-        c.prec = 4
-        self.assertEqual(email.clean('10.33'), c.create_decimal('10.33'))
 
 
 

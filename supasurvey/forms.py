@@ -4,7 +4,7 @@ from decimal import *
 
 from supasurvey.fields import ChooseYesNoField, ChooseOneField, ChooseOneOpenField
 from supasurvey.fields import ChooseMultipleField, ChooseOneForEachField
-from supasurvey.fields import CharField, IntegerField, EmailField, TextField, PercentField, MoneyField
+from supasurvey.fields import CharField, IntegerField, EmailField, TextField
 
 
 
@@ -17,9 +17,7 @@ class SupaSurveyForm(forms.Form):
         'textfield': CharField,
         'textarea': TextField,
         'integerfield': IntegerField,
-        'emailfield': EmailField,
-        'percentagefield': PercentField,
-        'moneyfield': MoneyField}
+        'emailfield': EmailField}
 
 
     def __init__(self, *args, **kwargs):
@@ -39,11 +37,13 @@ class SupaSurveyForm(forms.Form):
         self._max_score = Decimal(0);
         self._score = Decimal(0);
         self._calculate_score()
+
         return self._score
 
 
     def get_maxscore(self):
         self._calculate_maxscore();
+
         return self._max_score
 
 

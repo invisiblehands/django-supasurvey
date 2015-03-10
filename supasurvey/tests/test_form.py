@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from supasurvey.forms import SupaSurveyForm
-from supasurvey.fields import CharField, EmailField, MoneyField, ChooseYesNoField
+from supasurvey.fields import CharField, EmailField, ChooseYesNoField
 from supasurvey.fields import ChooseOneField, ChooseOneOpenField, ChooseMultipleField
 
 

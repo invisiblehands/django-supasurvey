@@ -35,7 +35,6 @@ class ScoreFormFieldBase(object):
         return max_score
 
 
-
     def get_choice_score(self, cleaned):
         choices = [x[0] for x in self.choices]
         if isinstance(self, forms.ChoiceField):
@@ -53,8 +52,6 @@ class ScoreFormFieldBase(object):
                     index = choices.index(chosen)
                     score.append(Decimal(self.scores[index]))
             self._score += sum(score)
-
-
 
 
     def get_correct_score(self, cleaned):
@@ -82,7 +79,6 @@ class ScoreFormFieldBase(object):
             self.get_choice_score(cleaned)
 
         return self._score
-    
 
 
     def clean(self, value):
@@ -94,7 +90,8 @@ class ScoreFormFieldBase(object):
 class OutputFormatFieldBase(object):
     def get_csv_value(self, v):
         return v
-        
+
+
     def get_formatted_value(self, v):
         return v
 
@@ -143,9 +140,8 @@ class EmailField(OutputFormatFieldBase, ScoreFormFieldBase, forms.EmailField):
         kwargs.update({
             'required': required
         })
-        
-        super(EmailField, self).__init__(*args, **kwargs)
 
+        super(EmailField, self).__init__(*args, **kwargs)
 
 
 
@@ -156,41 +152,8 @@ class IntegerField(OutputFormatFieldBase, ScoreFormFieldBase, forms.IntegerField
         kwargs.update({
             'required': required
         })
-        
+
         super(IntegerField, self).__init__(*args, **kwargs)
-
-
-
-
-class MoneyField(OutputFormatFieldBase, ScoreFormFieldBase, forms.DecimalField):
-    def __init__(self, *args, **kwargs):
-        required = kwargs.pop('required', False)
-
-        kwargs.update({
-            'required': required,
-            'max_digits': 8,
-            'decimal_places': 2
-        })
-        
-        super(MoneyField, self).__init__(*args, **kwargs)
-
-
-class PercentField(OutputFormatFieldBase, ScoreFormFieldBase, forms.DecimalField):
-    default_validators = [
-        MinValueValidator(0),
-        MaxValueValidator(100),
-    ]
-
-    def __init__(self, *args, **kwargs):
-        required = kwargs.pop('required', False)
-
-        kwargs.update({
-            'required': required,
-            'max_digits': 5,
-            'decimal_places': 2
-        })
-        
-        super(PercentField, self).__init__(*args, **kwargs)
 
 
 
@@ -214,6 +177,7 @@ class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFi
         super(ChooseYesNoField, self).__init__(*args, **kwargs)
 
 
+
 class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
@@ -224,13 +188,13 @@ class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFiel
         if widget == None:
             widget = RadioSelectOptions(
                 required=required)
-        
+
         kwargs.update({
             'widget': widget,
             'choices': choices,
             'required': required
         })
-        
+
         super(ChooseOneField, self).__init__(*args, **kwargs)
 
 
@@ -242,7 +206,7 @@ class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Choice
         choices = [(x, x) for x in choices]
         choices.append(('Other', 'Other'))
         choices = tuple(choices)
-        
+
         widget = RadioSelectOpen(
             required=required)
 
@@ -254,10 +218,12 @@ class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Choice
 
         super(ChooseOneOpenField, self).__init__(*args, **kwargs)
 
+
     def clean(self, value, *args, **kwargs):
         if value == 'Other':
             raise ValidationError('Please specify.', code='invalid')
         return super(ChooseOneOpenField, self).clean(value, *args, **kwargs)
+
 
     def valid_value(self, value):
         if value:
@@ -276,8 +242,9 @@ class ChooseMultipleField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Multi
             'choices': tuple(choices),
             'required': required
         })
-        
+
         super(ChooseMultipleField, self).__init__(**kwargs)
+
 
     def get_formatted_value(self, v):
         """ Override this function to display an html list. """
@@ -301,13 +268,14 @@ class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
         self.num_fields = len(fields)
 
         kwargs = {
-            'fields': fields, 
+            'fields': fields,
             'widget': widget,
             'required': required,
-            'error_messages': error_messages, 
+            'error_messages': error_messages,
         }
 
         super(ChooseOneForEachField, self).__init__(*args, **kwargs)
+
 
     def get_csv_value(self, v):
         """ the subject/choice is represented as a key-value pair and is rendered in the
@@ -321,6 +289,7 @@ class ChooseOneForEachField(ScoreFormFieldBase, forms.MultiValueField):
             txt += "[%s:%s]" %(x, y)
 
         return txt
+
 
     def get_formatted_value(self, v):
         """ the subject/choice is represented as a key-value pair and is rendered in the
