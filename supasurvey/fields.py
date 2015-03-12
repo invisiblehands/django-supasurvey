@@ -87,17 +87,9 @@ class ScoreFormFieldBase(object):
 
 
 
-class OutputFormatFieldBase(object):
-    def get_csv_value(self, v):
-        return v
 
 
-    def get_formatted_value(self, v):
-        return v
-
-
-
-class CharField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
+class CharField(ScoreFormFieldBase, forms.CharField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         min_length = kwargs.pop('min_length', None)
@@ -115,7 +107,7 @@ class CharField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
 
 
 
-class TextField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
+class TextField(ScoreFormFieldBase, forms.CharField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         min_length = kwargs.pop('min_length', None)
@@ -133,7 +125,7 @@ class TextField(OutputFormatFieldBase, ScoreFormFieldBase, forms.CharField):
 
 
 
-class EmailField(OutputFormatFieldBase, ScoreFormFieldBase, forms.EmailField):
+class EmailField(ScoreFormFieldBase, forms.EmailField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
 
@@ -145,7 +137,7 @@ class EmailField(OutputFormatFieldBase, ScoreFormFieldBase, forms.EmailField):
 
 
 
-class IntegerField(OutputFormatFieldBase, ScoreFormFieldBase, forms.IntegerField):
+class IntegerField(ScoreFormFieldBase, forms.IntegerField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
 
@@ -157,7 +149,7 @@ class IntegerField(OutputFormatFieldBase, ScoreFormFieldBase, forms.IntegerField
 
 
 
-class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+class ChooseYesNoField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         correct = kwargs.pop('correct', 'Yes')
@@ -178,7 +170,7 @@ class ChooseYesNoField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFi
 
 
 
-class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+class ChooseOneField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = kwargs.pop('choices', [])
@@ -199,7 +191,7 @@ class ChooseOneField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceFiel
 
 
 
-class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.ChoiceField):
+class ChooseOneOpenField(ScoreFormFieldBase, forms.ChoiceField):
     def __init__(self, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = kwargs.pop('choices', [])
@@ -232,7 +224,7 @@ class ChooseOneOpenField(OutputFormatFieldBase, ScoreFormFieldBase, forms.Choice
 
 
 
-class ChooseMultipleField(OutputFormatFieldBase, ScoreFormFieldBase, forms.MultipleChoiceField):
+class ChooseMultipleField(ScoreFormFieldBase, forms.MultipleChoiceField):
     def __init__(self, choices, *args, **kwargs):
         required = kwargs.pop('required', False)
         choices = [(x, x) for x in choices]

@@ -97,6 +97,7 @@ class TestFormSupa(SupaSurveyForm):
 
 
 class TestSupaSurveyQuestion1Form(SupaSurveyForm):
+    # max score of 4
     name = CharField(
         label="What is your name?",
         min_score=0,
@@ -110,6 +111,7 @@ class TestSupaSurveyQuestion1Form(SupaSurveyForm):
 
 
 class TestSupaSurveyQuestion2Form(SupaSurveyForm):
+    # max score of 12
     label = CharField(
         label="What is your profession?",
         min_score=0,
@@ -123,6 +125,7 @@ class TestSupaSurveyQuestion2Form(SupaSurveyForm):
 
 
 class TestSupaSurveyQuestion3Form(SupaSurveyForm):
+    # max score of 5
     choose_one = ChooseOneField(
     label="If yes, how long have you been a good dog?",
     choices = [
@@ -141,12 +144,26 @@ class FormSetTest(TestCase):
         self.assertEqual(len(formset), 3)
 
 
-    def test_formset(self):
-        FormClasses = [
+    def test_get_maxscore(self):
+        form_classes = [
             TestSupaSurveyQuestion1Form,
             TestSupaSurveyQuestion2Form,
             TestSupaSurveyQuestion3Form
         ]
 
-        for question_id, FC in enumerate(FormClasses):
-            formset = formset_factory(FC, extra=1)(prefix='question_%s' % question_id)
+        maxscores = [4, 12, 5]
+
+        for group_id, zipped in enumerate(zip(form_classes, maxscores)):
+            cls, maxscore = zipped
+            formset = formset_factory(cls, extra=1)(prefix='group_%s' % group_id)
+
+            self.assertEqual(len(formset), 1)
+            self.assertEqual(formset[0].get_score(), 0)
+            self.assertEqual(formset[0].get_maxscore(), maxscore)
+
+            for form in formset:
+                score = form.get_score()
+                maxscore = form.get_maxscore()
+
+    def test_get_score(self):
+        pass

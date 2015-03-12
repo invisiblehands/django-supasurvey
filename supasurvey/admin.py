@@ -9,26 +9,26 @@ from .models import SurveyResponse
 from .fields import *
 
 
-#from .forms import ReaderSurveySections
-# def export_survey_as_csv(modeladmin, request, queryset):
-#     opts = modeladmin.model._meta
 
-#     response = HttpResponse(mimetype='text/csv')
-#     response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(opts).replace('.', '_')
+def export_survey_as_csv(modeladmin, request, queryset):
+    opts = modeladmin.model._meta
 
-#     writer = csv.writer(response)
+    response = HttpResponse(mimetype='text/csv')
+    response['Content-Disposition'] = 'attachment; filename=%s.csv' % unicode(opts).replace('.', '_')
 
-#     field_names = modeladmin.get_survey_csv_headers()
-#     writer.writerow(list(field_names))
+    writer = csv.writer(response)
 
-#     for obj in queryset:
-#         csv_data = modeladmin.get_survey_csv_data(obj.data)
-#         data = [unicode(val).encode("utf-8","replace") for val in csv_data]    
-#         writer.writerow(data)
-    
-#     return response
+    field_names = modeladmin.get_survey_csv_headers()
+    writer.writerow(list(field_names))
 
-# export_survey_as_csv.short_description = "Export selected responses as CSV file"
+    for obj in queryset:
+        csv_data = modeladmin.get_survey_csv_data(obj.data)
+        data = [unicode(val).encode('utf-8','replace') for val in csv_data]
+        writer.writerow(data)
+
+    return response
+
+export_survey_as_csv.short_description = 'Export selected responses as CSV file'
 
 
 
@@ -41,10 +41,10 @@ from .fields import *
 
 #     def get_survey_csv_headers(self):
 #         column_names = []
-        
+
 #         for num, actual_field_name, actual_field, actual_form in self.csv_data:
 #             column_names.append(actual_field.label or actual_field_name)
-        
+
 #         return column_names
 
 
@@ -52,8 +52,6 @@ from .fields import *
 #         values = []
 
 #         column_names = []
-        
-        
 #         for num, actual_field_name, actual_field, actual_form in self.csv_data:
 #             column_names.append(actual_field.label or actual_field_name)
 #             key = '%s' % (num + 1)
@@ -67,7 +65,7 @@ from .fields import *
 #                     values.append(v)
 #             else:
 #                 values.append('None')
-        
+
 #         return values
 
 
@@ -96,18 +94,21 @@ from .fields import *
 #                         if self.data and self.data.has_key(key):
 #                             data = self.data.get(key)
 #                             v = data.get(actual_field_name)
-#                             rv = actual_field.get_formatted_value(v)
+#                             if hasattr(actual_field, 'get_formatted_value'):
+#                                   rv = actual_field.get_formatted_value(v)
+#                             else:
+#                                   rv = v
 #                             if rv:
 #                                 return rv
 #                             return v
-                        
+
 #                         return 'No answer'
 
 
 #                     get_actual_data.short_description = '%s' % (actual_field.label or field_name)
 #                     get_actual_data.allow_tags = True
 #                     return get_actual_data
-                
+
 
 #                 def get_csv_data(num, field_name, field, form):
 #                     key = '%s' % (num + 1)
@@ -119,25 +120,29 @@ from .fields import *
 #                         if self.data and self.data.has_key(key):
 #                             data = self.data.get(key)
 #                             v = data.get(actual_field_name)
-#                             rv = actual_field.get_csv_value(v)
+#                             if hasattr(actual_field, 'get_csv_value'):
+#                                   rv = actual_field.get_csv_value(v)
+#                             else:
+#                                   rv = v
+#
 #                             if rv:
 #                                 return rv
 #                             return v
-                        
+
 #                         return 'No answer'
 
 #                     return get_actual_csv_data
 
-                
-#                 method_csv = "get_%s_for_csv" % field_name
-#                 method_formatted = "get_%s_data" % field_name
+
+#                 method_csv = 'get_%s_for_csv' % field_name
+#                 method_formatted = 'get_%s_data' % field_name
 #                 survey_field_names.append(field_name)
 #                 survey_methods.append(method_formatted)
 #                 csv_data.append((num, field_name, field, form))
 
 #                 model.add_to_class(method_formatted, get_formatted_data(num, field_name, field, form))
 #                 model.add_to_class(method_csv, get_csv_data(num, field_name, field, form))
-        
+
 #         l =  list(self.list_display)
 #         l.extend(survey_methods)
 #         self.list_display = tuple(l)
@@ -149,4 +154,3 @@ from .fields import *
 
 
 # admin.site.register(SurveyResponse, SurveyResponseAdmin)
-# admin.site.add_action(export_as_csv_action("CSV Export", fields=["email"], header=False), "export csv")
