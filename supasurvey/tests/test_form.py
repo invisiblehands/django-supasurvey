@@ -13,10 +13,6 @@ from supasurvey.fields import ChooseOneField, ChooseOneOpenField, ChooseMultiple
 
 
 
-
-
-
-
 class TestSupaSurveyForm(SupaSurveyForm):
     name = CharField(
         label="What is your name?",
@@ -48,16 +44,19 @@ class ScoreYesNoFieldTest(TestCase):
         form = SupaSurveyForm()
         self.assertFalse(form.is_valid())
 
+
     def test_form_unbound_score(self):
         form = SupaSurveyForm()
         self.assertFalse(form.is_valid())
         self.assertEquals(form.get_score(), 0)
+
 
     def test_form_bound_blank_score(self):
         data = {}
         form = SupaSurveyForm(data)
         self.assertTrue(form.is_valid())
         self.assertEquals(form.get_score(), 0)
+
 
     def test_form_bound_data_not_valid(self):
         data = {
@@ -69,6 +68,7 @@ class ScoreYesNoFieldTest(TestCase):
         form = TestSupaSurveyForm(data)
         self.assertEquals(form.get_maxscore(), 19)
         self.assertEquals(form.get_score(), 16)
+
 
     def test_form_bound_data_valid(self):
         data = {
@@ -162,6 +162,7 @@ class FormSetTest(TestCase):
             for form in formset:
                 score = form.get_score()
                 maxscore = form.get_maxscore()
+
 
     def test_get_score(self):
         pass
