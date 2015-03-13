@@ -1,5 +1,3 @@
-import json
-
 from decimal import *
 
 from django.forms.util import ValidationError
