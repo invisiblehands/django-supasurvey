@@ -12,27 +12,21 @@ This is being open-sourced from a specific application, so there are currently c
 ### Install
 ~~pip install supasurvey~~ (not yet!)
 
-### Usage
-Coming soon.
-
-### Advanced Usage
-Coming soon.
-
 ## Features
 ##### Supa-easy static surveys
-Hardcode a survey using the supasurvey form classes and form field classes.  Very similar to hardcoding a django form.
+Hardcode a survey using the supasurvey form classes and form field classes. Very similar to hardcoding a django form.
 
 ##### Supa-easy dynamic surveys
-Create a form schema using CSS or json and feed it to the SupaSurvey FormBuilder.  The Formbuilder manages validation, pagination, ordering and it will make you breakfast, too.  Best of all, it's fast!
+Create a form schema using json and feed it to the SupaSurvey FormBuilder. The Formbuilder manages validation, pagination, ordering and it will make you breakfast, too. Best of all, it's fast!
 
 ##### Question dependencies
 Questions can be dependent on previous questions; a question will be disabled unless previous requirements are met.
 
 ##### Question scoring
-Scores are assigned to questions.  Each question can be assigned a max_score.  Depending on the question type, scoring will be slightly different.  For examples, a simple textarea will resolve to the max_score if it is not empty and validates.
+Scores are assigned to questions. Each question can be assigned a max_score. Depending on the question type, scoring will be slightly different. For examples, a simple textarea will resolve to the max_score if it is not empty and validates.
 
 ##### AJAX save-as-you-go
-Users responses are saved dynamically as the users progress through the survey.  The response-set is released once the user explicetly submits the form as completed.
+Users responses are saved as drafts as the users progress through the survey. The drafts are published once the user submits the form as completed.
 
 ##### Track survey history
 Change your survey and view the progression and stats of user completion, etc.  Great for a/b testing.  
@@ -44,6 +38,3 @@ If the survey has changed since the previous response-set (based on the survey h
 
 ##### Django Admin actions
 Some simple stuff to make the surveys easy to review and process through the django Admin.
-
-##### Export as PDF (Stretch Goal)
-This probably will not happen :)
